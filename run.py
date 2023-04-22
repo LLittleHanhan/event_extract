@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from transformers import AdamW, get_scheduler
+from transformers import get_scheduler
 
 from data_preprocess import train_dataloader, dev_dataloader
 from model import model

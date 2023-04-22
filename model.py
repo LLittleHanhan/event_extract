@@ -6,7 +6,6 @@ from transformers import BertPreTrainedModel, BertModel
 from transformers import AutoConfig
 
 
-
 class myBert(BertPreTrainedModel):
     def __init__(self, config):
         super().__init__(config)
@@ -24,12 +23,11 @@ class myBert(BertPreTrainedModel):
         return logits
 
 
-
 config = AutoConfig.from_pretrained('./bert-base-chinese')
 model = myBert.from_pretrained('./bert-base-chinese', config=config)
 
 if __name__ == '__main__':
-    for name,para in model.named_parameters():
-        print(name,para.shape,para.numel())
+    for name, para in model.named_parameters():
+        print(name, para.shape, para.numel())
     total = sum(p.numel() for p in model.parameters())
     print(total)

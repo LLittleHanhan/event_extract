@@ -4,9 +4,15 @@ from data_preprocess import id2label
 from seqeval.metrics import classification_report
 from seqeval.scheme import IOB2
 
+import matplotlib.pyplot as plt
+
 
 def train_loop(dataloader, model, loss_fn, optimizer, lr_scheduler, epoch, total_loss, device):
+    batchs = []
+    batch_loss = []
+    total_average_loss = []
     finish_batch_num = (epoch - 1) * len(dataloader)
+
     model.train()
     for batch, (X, y) in enumerate(dataloader, start=1):
         X, y = X.to(device), y.to(device)
@@ -18,13 +24,23 @@ def train_loop(dataloader, model, loss_fn, optimizer, lr_scheduler, epoch, total
         optimizer.zero_grad()
 
         loss.backward()
+        # for name, para in model.named_parameters():
+        #     if name == 'bert.encoder.layer.0.attention.self.query.weight':
+        #         print(para)
 
         optimizer.step()
         lr_scheduler.step()
 
         total_loss += loss.item()
-        if batch%5 == 0:
-            print('batch:', batch, '/', len(dataloader), '\t\t\t', 'loss:', total_loss / (finish_batch_num + batch))
+        total_batch = finish_batch_num + batch
+        if batch % 10 == 0:
+            print('batch:', batch, '/', len(dataloader), '\t\t\t', 'loss:', total_loss / total_batch)
+            batchs.append(total_batch)
+            batch_loss.append(loss.item())
+            total_average_loss.append(total_loss / total_batch)
+        if total_batch == 100:
+            break
+    draw(batchs, batch_loss,total_average_loss)
     return total_loss
 
 
@@ -49,3 +65,13 @@ def test_loop(dataloader, model, device):
                 for prediction, label in zip(predictions, labels)
             ]
     print(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2))
+
+
+def draw(batch, batch_loss,total_average_loss):
+    plt.title = 'loss'
+    plt.xlabel("batch")
+    plt.ylabel("loss")
+    plt.plot(batch, batch_loss, color='red', label='batch_loss')
+    plt.plot(batch, total_average_loss, color='green', label='total_average_loss')
+    plt.legend(loc="best")
+    plt.show()
