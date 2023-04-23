@@ -28,6 +28,8 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer
 
+bert_tokenizer = AutoTokenizer.from_pretrained('./bert-base-chinese')
+
 
 class myDataSet(Dataset):
     def __init__(self, path):
@@ -67,8 +69,7 @@ def collote_fn(batch_samples):
     for sample in batch_samples:
         batch_text.append(sample['text'])
         batch_tags.append(sample['tags'])
-    tokenizer = AutoTokenizer.from_pretrained('./bert-base-chinese')
-    batch_inputs = tokenizer(
+    batch_inputs = bert_tokenizer(
         batch_text,
         padding=True,
         truncation=True,
@@ -78,7 +79,7 @@ def collote_fn(batch_samples):
 
     batch_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
     for t_idx, text in enumerate(batch_text):
-        encoding = tokenizer(text, truncation=True, max_length=512)
+        encoding = bert_tokenizer(text, truncation=True, max_length=512)
         batch_label[t_idx][0] = -100
         batch_label[t_idx][len(encoding.tokens()) - 1:] = -100
         for tag in batch_tags[t_idx]:
@@ -116,20 +117,9 @@ dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=col
 train_data = myDataSet(train_path)
 train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
 
-<<<<<<< HEAD
-'''
-batch_X, batch_y = next(iter(train_dataloader))
-print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
-print('batch_y shape:', batch_y.shape)
-print(batch_X)
-print(batch_y)
-'''
-
-=======
 if __name__ == '__main__':
-    batch_X, batch_y = next(iter(train_dataloader))
-    print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
-    print('batch_y shape:', batch_y.shape)
-    print(batch_X)
-    print(batch_y)
->>>>>>> 49cf190b77e0439ee637692000ad46f1a1be8591
+    # batch_X, batch_y = next(iter(train_dataloader))
+    # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
+    # print('batch_y shape:', batch_y.shape)
+    # print(batch_X)
+    # print(batch_y)
