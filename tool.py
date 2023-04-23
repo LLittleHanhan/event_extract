@@ -45,6 +45,7 @@ batch_label[token_start + 1:token_end + 1] = 'I'
 '''
 
 # 制作lable
+'''
 with open(schema_path, 'r', encoding='utf-8') as s, open(label_path, 'w') as l:
     data = ['0 O']
     idx = 1
@@ -61,6 +62,7 @@ with open(schema_path, 'r', encoding='utf-8') as s, open(label_path, 'w') as l:
             idx +=1
     for d in data:
         l.write(d + '\n')
+'''
 
 # 统计事件个数
 '''
@@ -80,3 +82,17 @@ with open('./event_type_num.txt','w') as f:
     for item in type:
         f.write(str(item[0])+'\t\t\t\t\t\t\t'+str(item[1])+'\n')
 '''
+
+# 修复数据
+with open(train_path,'r',encoding='utf-8') as f,open(new_train_path,'w',encoding='utf-8') as nf:
+    for line in f.readlines():
+        json_data = json.loads(line)
+        for event in json_data['event_list']:
+            for argu in event['arguments']:
+                if argu['argument'][0] == ' ':
+                    argu['argument'] = str(argu['argument']).lstrip(' ')
+                    argu['argument_start_index'] +=1
+        nf.write(json.dumps(json_data,ensure_ascii= False) + '\n')
+
+
+

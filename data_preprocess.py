@@ -101,18 +101,23 @@ def collote_fn(batch_samples):
         for tag in batch_tags[t_idx]:
             trigger_token_start = encoding.char_to_token(tag['start'])
             trigger_token_end = encoding.char_to_token(tag['end'])
-            '''
-            print(tag)
-            print(text)
-            print(tokenizer.tokenize(text))
-            print("start:", token_start)
-            print("end  :", token_end)
-            '''
+
+            # print(tag)
+            # print(text)
+            # print(bert_tokenizer.tokenize(text))
+            # print("start:", trigger_token_start)
+            # print("end  :", trigger_token_end)
+
             batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}"]
             batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[f"I-{tag['event_type']}"]
             for argu in tag['arguments']:
                 trigger_token_start = encoding.char_to_token(argu['start'])
                 trigger_token_end = encoding.char_to_token(argu['end'])
+                # print(argu['role'])
+                # print(argu['argument'])
+                # print(trigger_token_start)
+                # print(trigger_token_end)
+                # print('\n')
                 batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}-{argu['role']}"]
                 batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[f"I-{tag['event_type']}-{argu['role']}"]
     return batch_inputs, torch.tensor(batch_label, dtype=torch.long)
@@ -120,7 +125,7 @@ def collote_fn(batch_samples):
 
 dev_path = './DuEE1.0/duee_dev.json'
 test_path = './DuEE1.0/duee_test.json'
-train_path = './DuEE1.0/duee_train.json'
+train_path = './DuEE1.0/new_duee_train.json'
 label_path = './DuEE1.0/label.txt'
 
 label2id = {}
@@ -135,13 +140,18 @@ with open(label_path) as f:
 
 dev_data = myDataSet(dev_path)
 dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
-# train_data = myDataSet(train_path)
-# train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+train_data = myDataSet(train_path)
+train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
 
 if __name__ == '__main__':
-    print(dev_data[113])
-    batch_X, batch_y = next(iter(dev_dataloader))
-    print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
-    print('batch_y shape:', batch_y.shape)
-    print(batch_X)
-    print(batch_y)
+    # print(dev_data[113])
+    it = (iter(train_dataloader))
+    c=0
+    while True :
+        c+=1
+        batch_X, batch_y = next(it)
+        # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
+        # print('batch_y shape:', batch_y.shape)
+        # print(batch_X)
+        # print(batch_y)
+        print(c)
