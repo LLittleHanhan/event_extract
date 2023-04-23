@@ -117,7 +117,7 @@ dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=col
 train_data = myDataSet(train_path)
 train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # batch_X, batch_y = next(iter(train_dataloader))
     # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
     # print('batch_y shape:', batch_y.shape)
