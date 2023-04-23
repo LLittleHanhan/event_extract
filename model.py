@@ -15,8 +15,8 @@ class myBert(BertPreTrainedModel):
         self.post_init()
 
     def forward(self, x):
-        with torch.no_grad():
-            bert_output = self.bert(**x)
+        #with torch.no_grad():
+        bert_output = self.bert(**x)
         sequence_output = bert_output.last_hidden_state
         sequence_output = self.dropout(sequence_output)
         logits = self.classifier(sequence_output)
