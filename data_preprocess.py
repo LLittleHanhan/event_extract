@@ -25,8 +25,10 @@
 import json
 import torch
 import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from transformers import AutoTokenizer
+
+from var import label2id
 
 bert_tokenizer = AutoTokenizer.from_pretrained('./bert-base-chinese')
 
@@ -47,7 +49,7 @@ class myDataSet(Dataset):
                     for argu in event['arguments']:
                         arguments.append({'role': argu['role'], 'argument': argu['argument'],
                                           'start': argu['argument_start_index'],
-                                          'end': argu['argument_start_index'] + len(argu['argument'])-1})
+                                          'end': argu['argument_start_index'] + len(argu['argument']) - 1})
                     event_tag['arguments'] = arguments
                     tags.append(event_tag)
                 dic["tags"] = tags
@@ -79,6 +81,7 @@ class myDataSet(Dataset):
           {'event_type': '人生-失联', 'trigger': '失联', 'start': 62, 'end': 63, 
            'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46}]}]}
 '''
+
 
 def collote_fn(batch_samples):
     batch_text, batch_tags = [], []
@@ -119,39 +122,30 @@ def collote_fn(batch_samples):
                 # print(trigger_token_end)
                 # print('\n')
                 batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}-{argu['role']}"]
-                batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[f"I-{tag['event_type']}-{argu['role']}"]
+                batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[
+                    f"I-{tag['event_type']}-{argu['role']}"]
     return batch_inputs, torch.tensor(batch_label, dtype=torch.long)
 
-
-dev_path = './DuEE1.0/duee_dev.json'
-test_path = './DuEE1.0/duee_test.json'
-train_path = './DuEE1.0/new_duee_train.json'
-label_path = './DuEE1.0/label.txt'
-
-label2id = {}
-id2label = {}
-with open(label_path) as f:
-    for line in f.readlines():
-        id, label = line.strip().split(' ')
-        label2id[label] = int(id)
-        id2label[int(id)] = label
+# label2id = {}
+# id2label = {}
+# with open(label_path) as f:
+#     for line in f.readlines():
+#         id, label = line.strip().split(' ')
+#         label2id[label] = int(id)
+#         id2label[int(id)] = label
 # print(label2id)
 # print(id2label)
 
-dev_data = myDataSet(dev_path)
-dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
-train_data = myDataSet(train_path)
-train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
 
-if __name__ == '__main__':
-    # print(dev_data[113])
-    it = (iter(train_dataloader))
-    c=0
-    while True :
-        c+=1
-        batch_X, batch_y = next(it)
-        # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
-        # print('batch_y shape:', batch_y.shape)
-        # print(batch_X)
-        # print(batch_y)
-        print(c)
+# if __name__ == '__main__':
+#     # print(dev_data[113])
+#     it = (iter(train_dataloader))
+#     c=0
+#     while True :
+#         c+=1
+#         batch_X, batch_y = next(it)
+#         # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
+#         # print('batch_y shape:', batch_y.shape)
+#         # print(batch_X)
+#         # print(batch_y)
+#         print(c)

@@ -1,6 +1,44 @@
-from var import epoch_num, loss_fn, optimizer, lr_scheduler, device, bert_model
-from data_preprocess import train_dataloader, dev_dataloader
-from train import train, test
-train(train_dataloader, bert_model, loss_fn, optimizer, lr_scheduler, epoch_num, device)
-test(dev_dataloader, bert_model, device)
+import torch
+from torch import nn
+from torch.utils.data import DataLoader
+from transformers import get_scheduler, AutoConfig
+
+from var import device, dev_path, train_path
+from data_preprocess import myDataSet, collote_fn
+from train import train, test, draw
+from model import myBert
+
+dev_data = myDataSet(dev_path)
+dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+train_data = myDataSet(train_path)
+train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+
+bert_config = AutoConfig.from_pretrained('./bert-base-chinese')
+bert_model = myBert.from_pretrained('./bert-base-chinese', config=bert_config).to(device)
+
+learning_rate = 1e-5
+epoch_num = 7
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.AdamW(bert_model.parameters(), lr=learning_rate)
+lr_scheduler = get_scheduler(
+    "linear",
+    optimizer=optimizer,
+    num_warmup_steps=0,
+    num_training_steps=epoch_num * len(train_dataloader),
+)
+
+total_loss = 0.
+batchs = []
+batch_loss = []
+total_average_loss = []
+
+for epoch in range(epoch_num):
+    train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+    print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
+    total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, bert_model, loss_fn, optimizer,
+                                                               lr_scheduler, epoch + 1, device, total_loss,
+                                                               batchs, batch_loss, total_average_loss)
+    test(dev_dataloader, bert_model, device)
+    torch.save(bert_model, f'./train_model/{epoch}model.bin')
+draw(batchs, batch_loss, total_average_loss)
 print("Done!")

@@ -1,9 +1,8 @@
-import torch
-
-from data_preprocess import id2label
 from torch import nn
 from transformers import BertPreTrainedModel, BertModel
 from transformers import AutoConfig
+
+from var import id2label
 
 
 class myBert(BertPreTrainedModel):
@@ -15,7 +14,7 @@ class myBert(BertPreTrainedModel):
         self.post_init()
 
     def forward(self, x):
-        #with torch.no_grad():
+        # with torch.no_grad():
         bert_output = self.bert(**x)
         sequence_output = bert_output.last_hidden_state
         sequence_output = self.dropout(sequence_output)
