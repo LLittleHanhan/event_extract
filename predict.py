@@ -5,7 +5,7 @@ from transformers import AutoTokenizer
 from var import device, bert_model
 from data_preprocess import id2label
 
-sentence = '廖浩'
+sentence = ''
 
 bert_tokenizer = AutoTokenizer.from_pretrained('./bert-base-chinese')
 bert_model.load_state_dict(
