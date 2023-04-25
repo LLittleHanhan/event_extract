@@ -108,16 +108,17 @@ from transformers import AdamW, get_scheduler
 # print(f"x.grad: {x.grad}")
 # print(f"y.grad: {y.grad}")
 
-
-import matplotlib.pyplot as plt
-
-#折线图
-x = [5,7,11,17,19,25]#点的横坐标
-k1 = [0.8222,0.918,0.9344,0.9262,0.9371,0.9353]#线1的纵坐标
-k2 = [0.8988,0.9334,0.9435,0.9407,0.9453,0.9453]#线2的纵坐标
-plt.plot(x,k1,'s-',color = 'r',label="ATT-RLSTM")#s-:方形
-plt.plot(x,k2,'o-',color = 'g',label="CNN-RLSTM")#o-:圆形
-plt.xlabel("region length")#横坐标名字
-plt.ylabel("accuracy")#纵坐标名字
-plt.legend(loc = "best")#图例
-plt.show()
+# import torch
+# from crf import CRF
+# num_tags = 5  # number of tags is 5
+# model = CRF(num_tags)
+# seq_length = 3  # maximum sequence length in a batch
+# batch_size = 2  # number of samples in the batch
+# emissions = torch.randn(seq_length, batch_size, num_tags)
+# tags = torch.tensor([[0, 1], [2, 4], [3, 1]], dtype=torch.long)  # (seq_length, batch_size)
+# print(model(emissions, tags))
+tags = torch.tensor([[0, 1], [2, 4], [3, 1]], dtype=torch.long)
+tags[:, 0] = 0
+print(tags)
+mask = tags != -100
+print(mask)

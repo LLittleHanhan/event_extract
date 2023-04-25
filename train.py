@@ -13,10 +13,12 @@ def train(dataloader, model, loss_fn, optimizer, lr_scheduler, epoch, device, to
 
     for batch, (X, y) in enumerate(dataloader, start=1):
         X, y = X.to(device), y.to(device)
-        pred = model(X)
+        pred, loss = model(X, y)
         # print(pred.size())
         # print(y.size())
-        loss = loss_fn(pred.permute(0, 2, 1), y)
+
+        # 不添加crf
+        # loss = loss_fn(pred.permute(0, 2, 1), y)
         optimizer.zero_grad()
         loss.backward()
         # for name, para in model.named_parameters():
@@ -39,21 +41,19 @@ def test(dataloader, model, device):
     true_labels, true_predictions = [], []
     model.eval()
     with torch.no_grad():
-        idx = 1
         for X, y in dataloader:
-            if (idx - 1) % 10 == 0:
-                print(idx, '/', len(dataloader))
-            idx += 1
-
             X, y = X.to(device), y.to(device)
-            pred = model(X)
-            predictions = pred.argmax(dim=-1).cpu().numpy().tolist()
+
+            _, pred = model(X)
+
+            # pred = model(X).argmax(dim=-1).cpu().numpy().tolist()
+
             labels = y.cpu().numpy().tolist()
 
             true_labels += [[id2label[int(l)] for l in label if l != -100] for label in labels]
             true_predictions += [
                 [id2label[int(p)] for (p, l) in zip(prediction, label) if l != -100]
-                for prediction, label in zip(predictions, labels)
+                for prediction, label in zip(pred, labels)
             ]
     print(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2))
 

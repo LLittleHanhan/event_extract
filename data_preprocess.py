@@ -28,9 +28,7 @@ import numpy as np
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 
-from var import label2id
-
-bert_tokenizer = AutoTokenizer.from_pretrained('./bert-base-chinese')
+from var import label2id, checkpoint
 
 
 class myDataSet(Dataset):
@@ -84,11 +82,12 @@ class myDataSet(Dataset):
 
 
 def collote_fn(batch_samples):
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     batch_text, batch_tags = [], []
     for sample in batch_samples:
         batch_text.append(sample['text'])
         batch_tags.append(sample['tags'])
-    batch_inputs = bert_tokenizer(
+    batch_inputs = tokenizer(
         batch_text,
         padding=True,
         truncation=True,
@@ -98,7 +97,7 @@ def collote_fn(batch_samples):
 
     batch_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
     for t_idx, text in enumerate(batch_text):
-        encoding = bert_tokenizer(text, truncation=True, max_length=512)
+        encoding = tokenizer(text, truncation=True, max_length=512)
         batch_label[t_idx][0] = -100
         batch_label[t_idx][len(encoding.tokens()) - 1:] = -100
         for tag in batch_tags[t_idx]:
@@ -107,7 +106,7 @@ def collote_fn(batch_samples):
 
             # print(tag)
             # print(text)
-            # print(bert_tokenizer.tokenize(text))
+            # print(tokenizer.tokenize(text))
             # print("start:", trigger_token_start)
             # print("end  :", trigger_token_end)
 
@@ -126,26 +125,22 @@ def collote_fn(batch_samples):
                     f"I-{tag['event_type']}-{argu['role']}"]
     return batch_inputs, torch.tensor(batch_label, dtype=torch.long)
 
-# label2id = {}
-# id2label = {}
-# with open(label_path) as f:
-#     for line in f.readlines():
-#         id, label = line.strip().split(' ')
-#         label2id[label] = int(id)
-#         id2label[int(id)] = label
-# print(label2id)
-# print(id2label)
 
+if __name__ == '__main__':
+    from torch.utils.data import DataLoader
+    from var import dev_path, train_path
 
-# if __name__ == '__main__':
-#     # print(dev_data[113])
-#     it = (iter(train_dataloader))
-#     c=0
-#     while True :
-#         c+=1
-#         batch_X, batch_y = next(it)
-#         # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
-#         # print('batch_y shape:', batch_y.shape)
-#         # print(batch_X)
-#         # print(batch_y)
-#         print(c)
+    dev_data = myDataSet(dev_path)
+    dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+    train_data = myDataSet(train_path)
+    train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+
+    it = (iter(train_dataloader))
+    while True:
+        # batch_X, batch_y = next(it)
+        # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
+        # print('batch_y shape:', batch_y.shape)
+        # print(batch_X)
+        # print(batch_y)
+        print(next(it)[0])
+        break
