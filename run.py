@@ -9,11 +9,13 @@ from data_preprocess import myDataSet, collote_fn
 from train import train, test, draw
 from model import myBert
 
+train_batch_size = 16
+dev_batch_size = 16
 
 dev_data = myDataSet(dev_path)
-dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+dev_dataloader = DataLoader(dev_data, batch_size=dev_batch_size, shuffle=True, collate_fn=collote_fn)
 train_data = myDataSet(train_path)
-train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+train_dataloader = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, collate_fn=collote_fn)
 
 myconfig = AutoConfig.from_pretrained(checkpoint)
 mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
@@ -36,7 +38,7 @@ total_average_loss = []
 
 for epoch in range(epoch_num):
     start_time = time.time()
-    train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+    train_dataloader = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, collate_fn=collote_fn)
     print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
     total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, loss_fn, optimizer,
                                                                lr_scheduler, epoch + 1, device, total_loss,
