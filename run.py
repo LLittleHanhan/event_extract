@@ -16,9 +16,9 @@ train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn
 
 myconfig = AutoConfig.from_pretrained(checkpoint)
 mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
-
+# mymodel = torch.load('',).to(device)
 learning_rate = 1e-5
-epoch_num = 10
+epoch_num = 2
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(mymodel.parameters(), lr=learning_rate)
 lr_scheduler = get_scheduler(
@@ -34,12 +34,13 @@ batch_loss = []
 total_average_loss = []
 
 for epoch in range(epoch_num):
-    train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
-    print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
-    total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, loss_fn, optimizer,
-                                                               lr_scheduler, epoch + 1, device, total_loss,
-                                                               batchs, batch_loss, total_average_loss)
+    # train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+    # print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
+    # total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, loss_fn, optimizer,
+    #                                                            lr_scheduler, epoch + 1, device, total_loss,
+    #                                                            batchs, batch_loss, total_average_loss)
+    print('yes')
     test(dev_dataloader, mymodel, device)
-    torch.save(mymodel, f'./train_model/crf{epoch}model.bin')
+    # torch.save(mymodel, f'./train_model/crf{epoch}model.bin')
 draw(batchs, batch_loss, total_average_loss)
 print("Done!")

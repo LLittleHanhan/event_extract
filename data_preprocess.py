@@ -101,8 +101,8 @@ def collote_fn(batch_samples):
         batch_label[t_idx][0] = -100
         batch_label[t_idx][len(encoding.tokens()) - 1:] = -100
         for tag in batch_tags[t_idx]:
-            trigger_token_start = encoding.char_to_token(tag['start'])
-            trigger_token_end = encoding.char_to_token(tag['end'])
+            # trigger_token_start = encoding.char_to_token(tag['start'])
+            # trigger_token_end = encoding.char_to_token(tag['end'])
 
             # print(tag)
             # print(text)
@@ -110,8 +110,8 @@ def collote_fn(batch_samples):
             # print("start:", trigger_token_start)
             # print("end  :", trigger_token_end)
 
-            batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}"]
-            batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[f"I-{tag['event_type']}"]
+            # batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}"]
+            # batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[f"I-{tag['event_type']}"]
             for argu in tag['arguments']:
                 trigger_token_start = encoding.char_to_token(argu['start'])
                 trigger_token_end = encoding.char_to_token(argu['end'])
@@ -142,5 +142,5 @@ if __name__ == '__main__':
         # print('batch_y shape:', batch_y.shape)
         # print(batch_X)
         # print(batch_y)
-        print(next(it)[0])
+        print(next(it)[1])
         break

@@ -3,7 +3,7 @@ from seqeval.metrics import classification_report
 from seqeval.scheme import IOB2
 import matplotlib.pyplot as plt
 
-from var import id2label
+from var import id2label, test_result_path
 
 
 def train(dataloader, model, loss_fn, optimizer, lr_scheduler, epoch, device, total_loss, batchs, batch_loss,
@@ -55,7 +55,9 @@ def test(dataloader, model, device):
                 [id2label[int(p)] for (p, l) in zip(prediction, label) if l != -100]
                 for prediction, label in zip(pred, labels)
             ]
-    print(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2))
+    with open(test_result_path, 'a', encoding='utf-8') as f:
+        f.write(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2))
+    # print(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2))
 
 
 def draw(batchs, batch_loss, total_average_loss):

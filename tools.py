@@ -63,16 +63,16 @@ batch_label[token_start + 1:token_end + 1] = 'I'
 '''
 
 # 制作lable
-'''
+
 with open(schema_path, 'r', encoding='utf-8') as s, open(label_path, 'w') as l:
     data = ['0 O']
     idx = 1
     for line in s.readlines():
         json_data = json.loads(line)
-        data.append(str(idx) + ' ' + 'B-' + json_data['event_type'])
-        idx += 1
-        data.append(str(idx) + ' ' + 'I-' + json_data['event_type'])
-        idx += 1
+        # data.append(str(idx) + ' ' + 'B-' + json_data['event_type'])
+        # idx += 1
+        # data.append(str(idx) + ' ' + 'I-' + json_data['event_type'])
+        # idx += 1
         for role in json_data['role_list']:
             data.append(str(idx) + ' ' + 'B-' + json_data['event_type'] + '-' + role['role'])
             idx += 1
@@ -80,7 +80,7 @@ with open(schema_path, 'r', encoding='utf-8') as s, open(label_path, 'w') as l:
             idx +=1
     for d in data:
         l.write(d + '\n')
-'''
+
 
 # 修复数据
 '''
@@ -95,7 +95,7 @@ with open(train_path, 'r', encoding='utf-8') as f, open(new_train_path, 'w', enc
         nf.write(json.dumps(json_data, ensure_ascii=False) + '\n')
 '''
 
-# 统计事件个数
+# 统计事件
 """
 {"text": "7月4日，由中铁十九局承建的青岛地铁1号线胜利桥站施工围挡处发生塌陷，造成一名施工人员死亡；而在此之前的5月27日，由中铁二十局施工的地铁4号线沙子口静沙区间施工段坍塌，5名被困工人全部遇难。", "id": "6d5b61216556ea335377a60923cf3ea5",
  "event_list": [{"event_type": "灾害/意外-坍/垮塌", "trigger": "塌陷", "trigger_start_index": 32,
@@ -119,7 +119,7 @@ with open(train_path, 'r', encoding='utf-8') as f, open(new_train_path, 'w', enc
                                {"argument_start_index": 67, "role": "地点", "argument": "地铁4号线沙子口静沙区间施工段", "alias": []}],
                  "class": "人生"}]}
 """
-
+'''
 event_type_list_all = []
 event_type_list = []
 with open(schema_path, 'r', encoding='utf-8') as f:
@@ -166,8 +166,8 @@ for len in text_len:
         len_dic[500] +=1
 print(len_dic)
 
-
-# with open(infor_path, 'w', encoding='utf-8') as f:
-#     for event_type, num in zip(event_type_list, event_type_num):
-#         f.write(event_type + ' ' + str(num) + '\n')
-# draw(event_type_list, event_type_num)
+with open(infor_path, 'w', encoding='utf-8') as f:
+    for event_type, num in zip(event_type_list, event_type_num):
+        f.write(event_type + ' ' + str(num) + '\n')
+draw(event_type_list, event_type_num)
+'''
