@@ -13,7 +13,7 @@ def train(dataloader, model, loss_fn, optimizer, lr_scheduler, epoch, device, to
 
     for batch, (X, y) in enumerate(dataloader, start=1):
         X, y = X.to(device), y.to(device)
-        pred, loss = model(X, y)
+        _, loss = model(X, y)
         # print(pred.size())
         # print(y.size())
 

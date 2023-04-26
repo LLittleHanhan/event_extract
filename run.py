@@ -18,7 +18,7 @@ myconfig = AutoConfig.from_pretrained(checkpoint)
 mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
 
 learning_rate = 1e-5
-epoch_num = 7
+epoch_num = 10
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(mymodel.parameters(), lr=learning_rate)
 lr_scheduler = get_scheduler(
@@ -40,6 +40,6 @@ for epoch in range(epoch_num):
                                                                lr_scheduler, epoch + 1, device, total_loss,
                                                                batchs, batch_loss, total_average_loss)
     test(dev_dataloader, mymodel, device)
-    torch.save(mymodel, f'./train_model/{epoch}model.bin')
+    torch.save(mymodel, f'./train_model/crf{epoch}model.bin')
 draw(batchs, batch_loss, total_average_loss)
 print("Done!")
