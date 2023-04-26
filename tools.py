@@ -64,7 +64,7 @@ batch_label[token_start + 1:token_end + 1] = 'I'
 
 # 制作lable
 
-with open(schema_path, 'r', encoding='utf-8') as s, open(label_path, 'w') as l:
+with open(schema_path, 'r', encoding='utf-8') as s, open(label_path, 'w', encoding='utf-8') as l:
     data = ['0 O']
     idx = 1
     for line in s.readlines():

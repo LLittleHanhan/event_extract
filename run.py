@@ -1,4 +1,5 @@
 import torch
+import time
 from torch import nn
 from torch.utils.data import DataLoader
 from transformers import get_scheduler, AutoConfig
@@ -34,13 +35,15 @@ batch_loss = []
 total_average_loss = []
 
 for epoch in range(epoch_num):
-    # train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
-    # print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
-    # total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, loss_fn, optimizer,
-    #                                                            lr_scheduler, epoch + 1, device, total_loss,
-    #                                                            batchs, batch_loss, total_average_loss)
-    print('yes')
+    start_time = time.time()
+    train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+    print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
+    total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, loss_fn, optimizer,
+                                                               lr_scheduler, epoch + 1, device, total_loss,
+                                                               batchs, batch_loss, total_average_loss)
     test(dev_dataloader, mymodel, device)
-    # torch.save(mymodel, f'./train_model/crf{epoch}model.bin')
+    end_time = time.time()
+    print('time',end_time-start_time)
+    torch.save(mymodel, f'./train_model/{epoch}model.bin')
 draw(batchs, batch_loss, total_average_loss)
 print("Done!")
