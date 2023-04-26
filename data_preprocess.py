@@ -25,10 +25,10 @@
 import json
 import torch
 import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 
-bert_tokenizer = AutoTokenizer.from_pretrained('./bert-base-chinese')
+from var import label2id, checkpoint
 
 
 class myDataSet(Dataset):
@@ -43,6 +43,12 @@ class myDataSet(Dataset):
                     event_tag = {"event_type": event["event_type"], "trigger": event["trigger"],
                                  "start": event["trigger_start_index"],
                                  "end": len(event["trigger"]) + event["trigger_start_index"] - 1}
+                    arguments = []
+                    for argu in event['arguments']:
+                        arguments.append({'role': argu['role'], 'argument': argu['argument'],
+                                          'start': argu['argument_start_index'],
+                                          'end': argu['argument_start_index'] + len(argu['argument']) - 1})
+                    event_tag['arguments'] = arguments
                     tags.append(event_tag)
                 dic["tags"] = tags
                 self.data.append(dic)
@@ -62,14 +68,26 @@ class myDataSet(Dataset):
          ]
 }
 '''
+'''
+{'text': '从三门峡市应急管理局获悉：截至7月19日21时20分，河南省煤气（集团）有限责任公司义马气化厂爆炸事故已造成2人死亡，12人失联，重伤18人（目前生命体征平稳），现场救援正在紧张进行中。', 
+ 'tags': [{'event_type': '灾害/意外-爆炸', 'trigger': '爆炸', 'start': 47, 'end': 48, 
+           'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46},
+                         {'role': '死亡人数', 'argument': '2人', 'start': 54, 'end': 55}, 
+                         {'role': '受伤人数', 'argument': '12人', 'start': 59, 'end': 61}]},
+          {'event_type': '人生-死亡', 'trigger': '死亡', 'start': 56, 'end': 57, 
+           'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46}]},
+          {'event_type': '人生-失联', 'trigger': '失联', 'start': 62, 'end': 63, 
+           'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46}]}]}
+'''
 
 
 def collote_fn(batch_samples):
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     batch_text, batch_tags = [], []
     for sample in batch_samples:
         batch_text.append(sample['text'])
         batch_tags.append(sample['tags'])
-    batch_inputs = bert_tokenizer(
+    batch_inputs = tokenizer(
         batch_text,
         padding=True,
         truncation=True,
@@ -79,49 +97,50 @@ def collote_fn(batch_samples):
 
     batch_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
     for t_idx, text in enumerate(batch_text):
-        encoding = bert_tokenizer(text, truncation=True, max_length=512)
+        encoding = tokenizer(text, truncation=True, max_length=512)
         batch_label[t_idx][0] = -100
         batch_label[t_idx][len(encoding.tokens()) - 1:] = -100
         for tag in batch_tags[t_idx]:
-            token_start = encoding.char_to_token(tag['start'])
-            token_end = encoding.char_to_token(tag['end'])
-            '''
-            print(tag)
-            print(text)
-            print(tokenizer.tokenize(text))
-            print("start:", token_start)
-            print("end  :", token_end)
-            '''
-            batch_label[t_idx][token_start] = label2id[f"B-{tag['event_type']}"]
-            batch_label[t_idx][token_start + 1:token_end + 1] = label2id[f"I-{tag['event_type']}"]
+            # trigger_token_start = encoding.char_to_token(tag['start'])
+            # trigger_token_end = encoding.char_to_token(tag['end'])
+
+            # print(tag)
+            # print(text)
+            # print(tokenizer.tokenize(text))
+            # print("start:", trigger_token_start)
+            # print("end  :", trigger_token_end)
+
+            # batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}"]
+            # batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[f"I-{tag['event_type']}"]
+            for argu in tag['arguments']:
+                trigger_token_start = encoding.char_to_token(argu['start'])
+                trigger_token_end = encoding.char_to_token(argu['end'])
+                # print(argu['role'])
+                # print(argu['argument'])
+                # print(trigger_token_start)
+                # print(trigger_token_end)
+                # print('\n')
+                batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}-{argu['role']}"]
+                batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[
+                    f"I-{tag['event_type']}-{argu['role']}"]
     return batch_inputs, torch.tensor(batch_label, dtype=torch.long)
 
 
-dev_path = './DuEE1.0/duee_dev.json'
-test_path = './DuEE1.0/duee_test.json'
-train_path = './DuEE1.0/duee_train.json'
-label_path = './DuEE1.0/label.txt'
-
-label2id = {}
-id2label = {}
-with open(label_path) as f:
-    for line in f.readlines():
-        id, label = line.strip().split(' ')
-        label2id[label] = int(id)
-        id2label[int(id)] = label
-# print(label2id)
-# print(id2label)
-
-dev_data = myDataSet(dev_path)
-dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
-train_data = myDataSet(train_path)
-train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
-
 if __name__ == '__main__':
-    '''
-    batch_X, batch_y = next(iter(train_dataloader))
-    print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
-    print('batch_y shape:', batch_y.shape)
-    print(batch_X)
-    print(batch_y)
-    '''
+    from torch.utils.data import DataLoader
+    from var import dev_path, train_path
+
+    dev_data = myDataSet(dev_path)
+    dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+    train_data = myDataSet(train_path)
+    train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+
+    it = (iter(train_dataloader))
+    while True:
+        # batch_X, batch_y = next(it)
+        # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
+        # print('batch_y shape:', batch_y.shape)
+        # print(batch_X)
+        # print(batch_y)
+        print(next(it)[1])
+        break

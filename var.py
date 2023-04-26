@@ -1,23 +1,23 @@
 import torch
-from torch import nn
-from transformers import AutoConfig, get_scheduler
+# 文件路径
+dev_path = './DuEE1.0/duee_dev.json'
+test_path = './DuEE1.0/duee_test.json'
+train_path = './DuEE1.0/new_duee_train.json'
+label_path = './DuEE1.0/label.txt'
+test_result_path = './test_result.txt'
+# id2label
+label2id = {}
+id2label = {}
+with open(label_path) as f:
+    for line in f.readlines():
+        id, label = line.strip().split(' ')
+        label2id[label] = int(id)
+        id2label[int(id)] = label
 
-from data_preprocess import train_dataloader
-from model import myBert
-
+#
+checkpoint = './bert-base-chinese'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
 
-bert_config = AutoConfig.from_pretrained('./bert-base-chinese')
-bert_model = myBert.from_pretrained('./bert-base-chinese', config=bert_config).to(device)
 
-learning_rate = 1e-5
-epoch_num = 3
-loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.AdamW(bert_model.parameters(), lr=learning_rate)
-lr_scheduler = get_scheduler(
-    "linear",
-    optimizer=optimizer,
-    num_warmup_steps=0,
-    num_training_steps=epoch_num * len(train_dataloader),
-)
+
