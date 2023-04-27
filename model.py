@@ -17,7 +17,6 @@ class myBert(BertPreTrainedModel):
 
     def forward(self, x, label=None):
         # with torch.no_grad():
-        # print(label)
         bert_output = self.bert(**x)
         sequence_output = bert_output.last_hidden_state
         sequence_output = self.dropout(sequence_output)
@@ -26,8 +25,7 @@ class myBert(BertPreTrainedModel):
             loss = -self.crf(emissions=logits,
                              tags=label, mask=x['attention_mask'], reduction="token_mean")
         else:
-            mask = torch.ones_like(logits[:, :, 0])
-            loss = self.crf.decode(emissions=logits, mask=mask)
+            loss = self.crf.decode(emissions=logits, mask=x['attention_mask'])
         return logits, loss
 
 

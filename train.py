@@ -6,19 +6,17 @@ import matplotlib.pyplot as plt
 from var import id2label, test_result_path
 
 
-def train(dataloader, model, loss_fn, optimizer, lr_scheduler, epoch, device, total_loss, batchs, batch_loss,
+def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss, batchs, batch_loss,
           total_average_loss):
     model.train()
     finish_batch_num = (epoch - 1) * len(dataloader)
 
-    for batch, (X, y) in enumerate(dataloader, start=1):
+    for batch, (X, y, z) in enumerate(dataloader, start=1):
         X, y = X.to(device), y.to(device)
         _, loss = model(X, y)
         # print(pred.size())
         # print(y.size())
 
-        # 不添加crf
-        # loss = loss_fn(pred.permute(0, 2, 1), y)
         optimizer.zero_grad()
         loss.backward()
         # for name, para in model.named_parameters():
@@ -28,7 +26,7 @@ def train(dataloader, model, loss_fn, optimizer, lr_scheduler, epoch, device, to
         lr_scheduler.step()
 
         total_loss += loss.item()
-        if batch % 100 == 0:
+        if batch % 2 == 0:
             total_batch = finish_batch_num + batch
             print('train:batch:', batch, '/', len(dataloader), '\t\t\t', 'loss:', total_loss / total_batch)
             batchs.append(total_batch)
@@ -41,18 +39,18 @@ def test(dataloader, model, device):
     true_labels, true_predictions = [], []
     model.eval()
     with torch.no_grad():
-        for idx, (X, y) in enumerate(dataloader, start=1):
+        for idx, (X, y, z) in enumerate(dataloader, start=1):
 
-            X, y = X.to(device), y.to(device)
+            X, z = X.to(device), z.to(device)
             _, pred = model(X)
             # pred = model(X).argmax(dim=-1).cpu().numpy().tolist()
-            labels = y.cpu().numpy().tolist()
+            labels = z.cpu().numpy().tolist()
             true_labels += [[id2label[int(l)] for l in label if l != -100] for label in labels]
             true_predictions += [
                 [id2label[int(p)] for (p, l) in zip(prediction, label) if l != -100]
                 for prediction, label in zip(pred, labels)
             ]
-            if idx % 100 == 0:
+            if idx % 2 == 0:
                 print('test:', idx, '/', len(dataloader))
     with open(test_result_path, 'a', encoding='utf-8') as f:
         f.write(str(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2)))

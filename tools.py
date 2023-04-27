@@ -13,18 +13,6 @@ schema_path = './DuEE1.0/duee_event_schema.json'
 infor_path = './DuEE1.0/info.txt'
 
 
-def draw(listx, listy):
-    plt.rcParams["font.sans-serif"] = ["SimHei"]
-    plt.rcParams["axes.unicode_minus"] = False
-    fig = plt.figure(figsize=(10, 40), dpi=200)
-    color = ['red', 'peru', 'orchid', 'deepskyblue', 'green']
-    plt.barh(listx, listy, color=color)
-    plt.xticks(rotation=90, fontsize=8)
-    for x, y, i in zip(listx, listy, range(len(listx))):
-        plt.text(y + 50, i, y, verticalalignment='center', fontsize=20)
-    plt.show()
-
-
 # 测试分词
 '''
 {"text": "近日， “移动电影院V2.0”产品于北京正式 发布，恰逢移动电影院App首发一周年，引起了业内的高度关注。", "id": "8e8c78eec1e7eb9ebe942ebb25728d02", 
@@ -40,46 +28,26 @@ def draw(listx, listy):
 
 
 '''
-'''
-from transformers import AutoTokenizer
-import numpy as np
 
-tokenizer = AutoTokenizer.from_pretrained('./bert-base-chinese')
-text = '近日, “移动电影院V2.0”产品于北京正式 发布，恰逢移动电影院App首发一周年，引起了业内的高度关注。'
-encoding = tokenizer(text)
-
-print(encoding.tokens())
-print(encoding.word_ids())
-
-batch_label = np.zeros(len(encoding['input_ids']), dtype=int)
-
-token_start = encoding.char_to_token(23)
-token_end = encoding.char_to_token(24)
-print(token_start)
-print(token_end)
-
-batch_label[token_start] = 'B'
-batch_label[token_start + 1:token_end + 1] = 'I'
-'''
-
-# 制作lable
-
-with open(schema_path, 'r', encoding='utf-8') as s, open(label_path, 'w', encoding='utf-8') as l:
-    data = ['0 O']
-    idx = 1
-    for line in s.readlines():
-        json_data = json.loads(line)
-        data.append(str(idx) + ' ' + 'B-' + json_data['event_type'])
-        idx += 1
-        data.append(str(idx) + ' ' + 'I-' + json_data['event_type'])
-        idx += 1
-        # for role in json_data['role_list']:
-        #     data.append(str(idx) + ' ' + 'B-' + json_data['event_type'] + '-' + role['role'])
-        #     idx += 1
-        #     data.append(str(idx) + ' ' + 'I-' + json_data['event_type'] + '-' + role['role'])
-        #     idx +=1
-    for d in data:
-        l.write(d + '\n')
+# from transformers import AutoTokenizer
+# import numpy as np
+#
+# tokenizer = AutoTokenizer.from_pretrained('./bert-base-chinese')
+# text = '近日, “移动电影院V2.0”产品于北京正式 发布，恰逢移动电影院App首发一周年，引起了业内的高度关注。'
+# encoding = tokenizer(text)
+#
+# print(encoding.tokens())
+# print(encoding.word_ids())
+#
+# batch_label = np.zeros(len(encoding['input_ids']), dtype=int)
+#
+# token_start = encoding.char_to_token(23)
+# token_end = encoding.char_to_token(24)
+# print(token_start)
+# print(token_end)
+#
+# batch_label[token_start] = 'B'
+# batch_label[token_start + 1:token_end + 1] = 'I'
 
 
 # 修复数据
@@ -120,6 +88,17 @@ with open(train_path, 'r', encoding='utf-8') as f, open(new_train_path, 'w', enc
                  "class": "人生"}]}
 """
 '''
+def draw(listx, listy):
+    plt.rcParams["font.sans-serif"] = ["SimHei"]
+    plt.rcParams["axes.unicode_minus"] = False
+    fig = plt.figure(figsize=(10, 40), dpi=200)
+    color = ['red', 'peru', 'orchid', 'deepskyblue', 'green']
+    plt.barh(listx, listy, color=color)
+    plt.xticks(rotation=90, fontsize=8)
+    for x, y, i in zip(listx, listy, range(len(listx))):
+        plt.text(y + 50, i, y, verticalalignment='center', fontsize=20)
+    plt.show()
+
 event_type_list_all = []
 event_type_list = []
 with open(schema_path, 'r', encoding='utf-8') as f:

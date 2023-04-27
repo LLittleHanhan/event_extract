@@ -35,23 +35,21 @@ class myDataSet(Dataset):
     def __init__(self, path):
         self.data = []
         with open(path, 'r', encoding='utf-8') as f:
-            for l in f.readlines():
-                json_data = json.loads(l)
-                dic = {"text": json_data["text"]}
-                tags = []
-                for event in json_data["event_list"]:
-                    event_tag = {"event_type": event["event_type"], "trigger": event["trigger"],
-                                 "start": event["trigger_start_index"],
-                                 "end": len(event["trigger"]) + event["trigger_start_index"] - 1}
-                    arguments = []
+            for line in f.readlines():
+                json_data = json.loads(line)
+                for event in json_data['event_list']:
+                    roles = [x['role'] for x in event['arguments']]
+                    # if len(roles) != len(set(roles)) and event['event_type'] not in ['人生-分手', '人生-婚礼', '人生-结婚',
+                    #                                                                  '人生-离婚']:
+                    #     print(json_data)
                     for argu in event['arguments']:
-                        arguments.append({'role': argu['role'], 'argument': argu['argument'],
-                                          'start': argu['argument_start_index'],
-                                          'end': argu['argument_start_index'] + len(argu['argument']) - 1})
-                    event_tag['arguments'] = arguments
-                    tags.append(event_tag)
-                dic["tags"] = tags
-                self.data.append(dic)
+                        dic = {'text': json_data['text'], 'event_type': event['event_type'],
+                               'trigger': event['trigger'], 'trigger_start': event['trigger_start_index'],
+                               'trigger_end': event['trigger_start_index'] + len(event['trigger']) - 1,
+                               'role': argu['role'], 'argu': argu['argument'],
+                               'argu_start': argu['argument_start_index'],
+                               'argu_end': argu['argument_start_index'] + len(argu['argument']) - 1}
+                        self.data.append(dic)
 
     def __len__(self):
         return len(self.data)
@@ -61,33 +59,29 @@ class myDataSet(Dataset):
 
 
 '''
-{'text': '消失的“外企光环”，5月份在华裁员900余人，香饽饽变“臭”了', 
- 'tags': [
-            {''event_type'': '组织关系-裁员', 'trigger': '裁员', 'start': 15, 'end': 17}
-            {                                                                     }
-         ]
-}
-'''
-'''
-{'text': '从三门峡市应急管理局获悉：截至7月19日21时20分，河南省煤气（集团）有限责任公司义马气化厂爆炸事故已造成2人死亡，12人失联，重伤18人（目前生命体征平稳），现场救援正在紧张进行中。', 
- 'tags': [{'event_type': '灾害/意外-爆炸', 'trigger': '爆炸', 'start': 47, 'end': 48, 
-           'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46},
-                         {'role': '死亡人数', 'argument': '2人', 'start': 54, 'end': 55}, 
-                         {'role': '受伤人数', 'argument': '12人', 'start': 59, 'end': 61}]},
-          {'event_type': '人生-死亡', 'trigger': '死亡', 'start': 56, 'end': 57, 
-           'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46}]},
-          {'event_type': '人生-失联', 'trigger': '失联', 'start': 62, 'end': 63, 
-           'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46}]}]}
+'text': '6月7日报道，IBM将裁员超过1000人。IBM周四确认，将裁减一千多人。据知情人士称，此次裁员将影响到约1700名员工，约占IBM全球逾34万员工中的0.5%。IBM股价今年累计上涨16%，但该公司4月发布的财报显示，一季度营收下降5%，低于市场预期。', 
+'event_type': '组织关系-裁员', 
+'trigger': '裁员', 
+'trigger_start': 11, 
+'trigger_end': 12, 
+'role': '裁员方', 
+'argu': 'IBM', 
+'argu_start': 7, 
+'argu_end': 9}
+
 '''
 
 
 def collote_fn(batch_samples):
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-    batch_text, batch_tags = [], []
+    batch_question, batch_text = [], []
     for sample in batch_samples:
+        question = '触发词为' + sample['trigger'] + '的事件类型' + str(sample['event_type']).split('-')[1] + '中角色' + sample[
+            'role']
+        batch_question.append(question)
         batch_text.append(sample['text'])
-        batch_tags.append(sample['tags'])
     batch_inputs = tokenizer(
+        batch_question,
         batch_text,
         padding=True,
         truncation=True,
@@ -96,34 +90,20 @@ def collote_fn(batch_samples):
     )
 
     batch_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
-    for t_idx, text in enumerate(batch_text):
-        encoding = tokenizer(text, truncation=True, max_length=512)
-        batch_label[t_idx][0] = -100
-        batch_label[t_idx][len(encoding.tokens()) - 1:] = -100
-        for tag in batch_tags[t_idx]:
-            trigger_token_start = encoding.char_to_token(tag['start'])
-            trigger_token_end = encoding.char_to_token(tag['end'])
+    true_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
+    for idx, (question, text) in enumerate(zip(batch_question, batch_text)):
+        encoding = tokenizer(question, text, truncation=True, max_length=512)
+        token_start = encoding.char_to_token(batch_samples[idx]['argu_start'], sequence_index=1)
+        token_end = encoding.char_to_token(batch_samples[idx]['argu_end'], sequence_index=1)
 
-            # print(tag)
-            # print(text)
-            # print(tokenizer.tokenize(text))
-            # print("start:", trigger_token_start)
-            # print("end  :", trigger_token_end)
+        batch_label[idx][token_start] = label2id['B']
+        batch_label[idx][token_start + 1:token_end + 1] = label2id['I']
 
-            batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}"]
-            batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[f"I-{tag['event_type']}"]
-            # for argu in tag['arguments']:
-            #     trigger_token_start = encoding.char_to_token(argu['start'])
-            #     trigger_token_end = encoding.char_to_token(argu['end'])
-            #     # print(argu['role'])
-            #     # print(argu['argument'])
-            #     # print(trigger_token_start)
-            #     # print(trigger_token_end)
-            #     # print('\n')
-            #     batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}-{argu['role']}"]
-            #     batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[
-            #         f"I-{tag['event_type']}-{argu['role']}"]
-    return batch_inputs, torch.tensor(batch_label, dtype=torch.long)
+        true_label[idx][0:encoding.char_to_token(0, sequence_index=1)] = -100
+        true_label[idx][len(encoding.tokens()):] = -100
+        true_label[idx][token_start] = label2id['B']
+        true_label[idx][token_start + 1:token_end + 1] = label2id['I']
+    return batch_inputs, torch.tensor(batch_label), torch.tensor(batch_label)
 
 
 if __name__ == '__main__':
@@ -134,13 +114,13 @@ if __name__ == '__main__':
     dev_dataloader = DataLoader(dev_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
     train_data = myDataSet(train_path)
     train_dataloader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=collote_fn)
+    print(len(dev_dataloader))
+    print(len(train_dataloader))
 
     it = (iter(train_dataloader))
     while True:
-        # batch_X, batch_y = next(it)
+        batch_X, batch_y = next(it)
         # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
         # print('batch_y shape:', batch_y.shape)
         # print(batch_X)
-        # print(batch_y)
-        print(next(it)[1])
-        break
+        print(batch_y)
