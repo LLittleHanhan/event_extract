@@ -52,7 +52,7 @@ checkpoint = './chinese-roberta-wwm-ext'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
 
-train_batch_size = 4
+train_batch_size = 8
 dev_batch_size = 32
-learning_rate = 3e-5
+learning_rate = 2e-5
 epoch_num = 5
