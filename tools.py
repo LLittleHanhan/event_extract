@@ -151,3 +151,7 @@ with open(infor_path, 'w', encoding='utf-8') as f:
 draw(event_type_list, event_type_num)
 '''
 
+li = [{'a': 1}, {'b': 2}, {'a': 1}]
+
+li = [dict(t) for t in set([tuple(d.items()) for d in li])]
+print(li)

@@ -34,22 +34,40 @@ from var import label2id, checkpoint
 class myDataSet(Dataset):
     def __init__(self, path):
         self.data = []
+
         with open(path, 'r', encoding='utf-8') as f:
             for line in f.readlines():
                 json_data = json.loads(line)
                 for event in json_data['event_list']:
-                    roles = [x['role'] for x in event['arguments']]
-                    # if len(roles) != len(set(roles)) and event['event_type'] not in ['人生-分手', '人生-婚礼', '人生-结婚',
-                    #                                                                  '人生-离婚']:
-                    #     print(json_data)
+                    # 去重
                     for argu in event['arguments']:
+                        del argu['alias']
+                    event['arguments'] = [dict(dic) for dic in
+                                          set([tuple(argu.items()) for argu in event['arguments']])]
+
+                    # 找相同的role
+                    role_dic = {}
+
+                    for argu in event['arguments']:
+                        if argu['role'] in role_dic:
+
+                            role_dic[argu['role']][0].append(argu['argument'])
+                            role_dic[argu['role']][1].append(argu['argument_start_index'])
+                            role_dic[argu['role']][2].append(argu['argument_start_index'] + len(argu['argument']) - 1)
+                        else:
+                            role_dic[argu['role']] = [[argu['argument']], [argu['argument_start_index']],
+                                                      [argu['argument_start_index'] + len(argu['argument']) - 1]]
+
+                    # 遍历role_dic
+                    for k, v in role_dic.items():
                         dic = {'text': json_data['text'], 'event_type': event['event_type'],
                                'trigger': event['trigger'], 'trigger_start': event['trigger_start_index'],
                                'trigger_end': event['trigger_start_index'] + len(event['trigger']) - 1,
-                               'role': argu['role'], 'argu': argu['argument'],
-                               'argu_start': argu['argument_start_index'],
-                               'argu_end': argu['argument_start_index'] + len(argu['argument']) - 1}
+                               'role': k, 'argu': v[0],
+                               'argu_start': v[1],
+                               'argu_end': v[2]}
                         self.data.append(dic)
+                    role_dic.clear()
 
     def __len__(self):
         return len(self.data)
@@ -65,9 +83,10 @@ class myDataSet(Dataset):
 'trigger_start': 11, 
 'trigger_end': 12, 
 'role': '裁员方', 
-'argu': 'IBM', 
-'argu_start': 7, 
-'argu_end': 9}
+'argu': ['IBM'], 
+'argu_start': [7], 
+'argu_end': [9]
+}
 
 '''
 
@@ -93,16 +112,18 @@ def collote_fn(batch_samples):
     addn100_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
     for idx, (question, text) in enumerate(zip(batch_question, batch_text)):
         encoding = tokenizer(question, text, truncation=True, max_length=512)
-        token_start = encoding.char_to_token(batch_samples[idx]['argu_start'], sequence_index=1)
-        token_end = encoding.char_to_token(batch_samples[idx]['argu_end'], sequence_index=1)
-        # 这个label针对crf的mask的范围
-        batch_label[idx][token_start] = label2id['B']
-        batch_label[idx][token_start + 1:token_end + 1] = label2id['I']
-        # 这个是实际要看的范围
+        for (start,end) in zip(batch_samples[idx]['argu_start'],batch_samples[idx]['argu_end']):
+            token_start = encoding.char_to_token(start, sequence_index=1)
+            token_end = encoding.char_to_token(end, sequence_index=1)
+            # 这个label针对crf的mask的范围
+            batch_label[idx][token_start] = label2id['B']
+            batch_label[idx][token_start + 1:token_end + 1] = label2id['I']
+            # 这个是实际要看的范围
+            addn100_label[idx][token_start] = label2id['B']
+            addn100_label[idx][token_start + 1:token_end + 1] = label2id['I']
         addn100_label[idx][0:encoding.char_to_token(0, sequence_index=1)] = -100
         addn100_label[idx][len(encoding.tokens()):] = -100
-        addn100_label[idx][token_start] = label2id['B']
-        addn100_label[idx][token_start + 1:token_end + 1] = label2id['I']
+
     return batch_inputs, torch.tensor(batch_label), torch.tensor(addn100_label, dtype=torch.long)
 
 
@@ -119,8 +140,9 @@ if __name__ == '__main__':
 
     it = (iter(train_dataloader))
     while True:
-        batch_X, batch_y = next(it)
+        batch_X, batch_y, batch_z = next(it)
         # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
         # print('batch_y shape:', batch_y.shape)
         # print(batch_X)
         print(batch_y)
+

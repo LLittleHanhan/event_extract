@@ -24,7 +24,7 @@ def run():
     lr_scheduler = get_scheduler(
         "linear",
         optimizer=optimizer,
-        num_warmup_steps=0,
+        num_warmup_steps=100,
         num_training_steps=epoch_num * len(train_dataloader),
     )
 
@@ -49,6 +49,8 @@ def run():
 
         sum_r = 0
         sum_w = 0
+        for k, v in report_dic.items():
+            v[0] = v[1] = 0
         for k, v in report_dic.items():
             sum_r += v[0]
             sum_w += v[1]
