@@ -3,6 +3,7 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
+from torch import tensor
 
 dev_path = './DuEE1.0/duee_dev.json'
 test_path = './DuEE1.0/duee_test.json'
@@ -11,7 +12,6 @@ label_path = './DuEE1.0/label.txt'
 new_train_path = './DuEE1.0/new_duee_train.json'
 schema_path = './DuEE1.0/duee_event_schema.json'
 infor_path = './DuEE1.0/info.txt'
-
 
 # 测试分词
 '''
@@ -150,3 +150,4 @@ with open(infor_path, 'w', encoding='utf-8') as f:
         f.write(event_type + ' ' + str(num) + '\n')
 draw(event_type_list, event_type_num)
 '''
+

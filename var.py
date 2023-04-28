@@ -37,12 +37,22 @@ with open(label_path, 'r',encoding='utf-8') as f:
         id2label[int(id)] = label
 
 #
-checkpoint = './bert-base-chinese'
+report_dic = {}
+with open(schema_path, 'r', encoding='utf-8') as f:
+    for line in f.readlines():
+        json_data = json.loads(line)
+        event_type = str(json_data['event_type']).split('-')[1]
+        for role in json_data['role_list']:
+            report_dic[event_type + '-' + role['role']] = [0,0]
+
+
+#
+checkpoint = './chinese-roberta-wwm-ext'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
 
-train_batch_size = 16
-dev_batch_size = 16
-learning_rate = 1e-5
-epoch_num = 10
+train_batch_size = 8
+dev_batch_size = 32
+learning_rate = 3e-5
+epoch_num = 5

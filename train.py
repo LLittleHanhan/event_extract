@@ -1,32 +1,35 @@
+import re
 import torch
 from seqeval.metrics import classification_report
 from seqeval.scheme import IOB2
 import matplotlib.pyplot as plt
+from transformers import AutoTokenizer
 
-from var import id2label, test_result_path
+from var import id2label, test_result_path, schema_path, checkpoint, report_dic
 
 
 def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss, batchs, batch_loss,
-          total_average_loss):
+          total_average_loss, isCRF=True):
     model.train()
     finish_batch_num = (epoch - 1) * len(dataloader)
 
     for batch, (X, y, z) in enumerate(dataloader, start=1):
-        X, y = X.to(device), y.to(device)
-        _, loss = model(X, y)
-        # print(pred.size())
-        # print(y.size())
+        X = X.to(device)
+        if isCRF:
+            y = y.to(device)
+            _, loss = model(X, y, isCRF)
+        else:
+            z = z.to(device)
+            _, loss = model(X, z, isCRF)
 
         optimizer.zero_grad()
         loss.backward()
-        # for name, para in model.named_parameters():
-        #     if name == 'bert.encoder.layer.0.attention.self.query.weight':
-        #         print(para)
+
         optimizer.step()
         lr_scheduler.step()
 
         total_loss += loss.item()
-        if batch % 2 == 0:
+        if batch % 100 == 0:
             total_batch = finish_batch_num + batch
             print('train:batch:', batch, '/', len(dataloader), '\t\t\t', 'loss:', total_loss / total_batch)
             batchs.append(total_batch)
@@ -35,26 +38,27 @@ def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss,
     return total_loss, batchs, batch_loss, total_average_loss
 
 
-def test(dataloader, model, device):
-    true_labels, true_predictions = [], []
+def test(dataloader, model, device, isCRF=True):
     model.eval()
     with torch.no_grad():
         for idx, (X, y, z) in enumerate(dataloader, start=1):
-
             X, z = X.to(device), z.to(device)
-            _, pred = model(X)
-            # pred = model(X).argmax(dim=-1).cpu().numpy().tolist()
+
+            _, preds = model(X, isCRF=isCRF)
+
+            # z用作标签和过滤，只看第二句话评估
             labels = z.cpu().numpy().tolist()
-            true_labels += [[id2label[int(l)] for l in label if l != -100] for label in labels]
-            true_predictions += [
-                [id2label[int(p)] for (p, l) in zip(prediction, label) if l != -100]
-                for prediction, label in zip(pred, labels)
+
+            predictions = [
+                [p for (p, t) in zip(one_p, one_t) if t != -100]
+                for one_p, one_t in zip(preds, labels)
             ]
-            if idx % 2 == 0:
+            targets = [[t for t in one_t if t != -100] for one_t in labels]
+
+            report(predictions, targets, X)
+
+            if idx % 100 == 0:
                 print('test:', idx, '/', len(dataloader))
-    with open(test_result_path, 'a', encoding='utf-8') as f:
-        f.write(str(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2)))
-    # print(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2))
 
 
 def draw(batchs, batch_loss, total_average_loss):
@@ -65,3 +69,18 @@ def draw(batchs, batch_loss, total_average_loss):
     plt.plot(batchs, total_average_loss, color='green', label='total_average_loss')
     plt.legend(loc="best")
     plt.show()
+
+
+def report(preds, true_labels, X):
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+    for (pred, label, input_ids) in zip(preds, true_labels, X['input_ids']):
+        seq = str(tokenizer.decode(input_ids, skip_special_tokens=True)).replace(' ', '')
+        seq = re.split('触发词为|的事件|中角色|是什么?', seq)
+        event_type = seq[2]
+        event_trigger = seq[1]
+        role = seq[3]
+        if pred == label:
+            report_dic[event_type + '-' + role][0] += 1
+
+        else:
+            report_dic[event_type + '-' + role][1] += 1

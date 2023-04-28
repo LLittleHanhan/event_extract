@@ -76,8 +76,8 @@ def collote_fn(batch_samples):
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     batch_question, batch_text = [], []
     for sample in batch_samples:
-        question = '触发词为' + sample['trigger'] + '的事件类型' + str(sample['event_type']).split('-')[1] + '中角色' + sample[
-            'role']
+        question = '触发词为' + sample['trigger'] + '的事件' + str(sample['event_type']).split('-')[1] + '中角色' + sample[
+            'role'] + '是什么？'
         batch_question.append(question)
         batch_text.append(sample['text'])
     batch_inputs = tokenizer(
@@ -90,20 +90,20 @@ def collote_fn(batch_samples):
     )
 
     batch_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
-    true_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
+    addn100_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
     for idx, (question, text) in enumerate(zip(batch_question, batch_text)):
         encoding = tokenizer(question, text, truncation=True, max_length=512)
         token_start = encoding.char_to_token(batch_samples[idx]['argu_start'], sequence_index=1)
         token_end = encoding.char_to_token(batch_samples[idx]['argu_end'], sequence_index=1)
-
+        # 这个label针对crf的mask的范围
         batch_label[idx][token_start] = label2id['B']
         batch_label[idx][token_start + 1:token_end + 1] = label2id['I']
-
-        true_label[idx][0:encoding.char_to_token(0, sequence_index=1)] = -100
-        true_label[idx][len(encoding.tokens()):] = -100
-        true_label[idx][token_start] = label2id['B']
-        true_label[idx][token_start + 1:token_end + 1] = label2id['I']
-    return batch_inputs, torch.tensor(batch_label), torch.tensor(batch_label)
+        # 这个是实际要看的范围
+        addn100_label[idx][0:encoding.char_to_token(0, sequence_index=1)] = -100
+        addn100_label[idx][len(encoding.tokens()):] = -100
+        addn100_label[idx][token_start] = label2id['B']
+        addn100_label[idx][token_start + 1:token_end + 1] = label2id['I']
+    return batch_inputs, torch.tensor(batch_label), torch.tensor(addn100_label, dtype=torch.long)
 
 
 if __name__ == '__main__':

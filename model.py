@@ -15,17 +15,26 @@ class myBert(BertPreTrainedModel):
         self.crf = CRF(len(id2label), batch_first=True)
         self.post_init()
 
-    def forward(self, x, label=None):
+    def forward(self, x, label=None, isCRF=True):
         # with torch.no_grad():
         bert_output = self.bert(**x)
         sequence_output = bert_output.last_hidden_state
         sequence_output = self.dropout(sequence_output)
         logits = self.classifier(sequence_output)
         if label is not None:
-            loss = -self.crf(emissions=logits,
-                             tags=label, mask=x['attention_mask'], reduction="token_mean")
+            if isCRF:
+                loss = -self.crf(emissions=logits,
+                                 tags=label, mask=x['attention_mask'], reduction="token_mean")
+            else:
+                loss_fn = nn.CrossEntropyLoss()
+                loss = loss_fn(logits.permute(0, 2, 1), label)
         else:
-            loss = self.crf.decode(emissions=logits, mask=x['attention_mask'])
+            # 这里的loss用作pred
+            if isCRF:
+                # 返回mask后的部分
+                loss = self.crf.decode(emissions=logits, mask=x['attention_mask'])
+            else:
+                loss = logits.argmax(dim=-1).cpu().numpy().tolist()
         return logits, loss
 
 
