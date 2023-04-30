@@ -21,7 +21,7 @@ def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss,
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        lr_scheduler.step()
+        # lr_scheduler.step()
 
         total_loss += loss.item()
         if batch % 100 == 0:

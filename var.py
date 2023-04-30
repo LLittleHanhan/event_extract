@@ -53,4 +53,4 @@ train_batch_size = 8
 dev_batch_size = 64
 CRF_learning_rate = 2e-3
 bert_learning_rate = 2e-5
-epoch_num = 5
+epoch_num = 20
