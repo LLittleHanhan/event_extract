@@ -50,7 +50,7 @@ def run():
 
         for k, v in report_dic.items():
             v[0] = v[1] = 0
-        test(train_dataloader, mymodel, device)
+        test(dev_dataloader, mymodel, device)
         end_time = time.time()
         print('time', end_time - start_time)
 
