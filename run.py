@@ -26,12 +26,12 @@ def run():
         {"params": mymodel.crf.parameters(), "lr": CRF_learning_rate},
     ]
     optimizer = torch.optim.AdamW(params)
-    lr_scheduler = get_scheduler(
-        "linear",
-        optimizer=optimizer,
-        num_warmup_steps=100,
-        num_training_steps=epoch_num * len(train_dataloader),
-    )
+    # lr_scheduler = get_scheduler(
+    #     "linear",
+    #     optimizer=optimizer,
+    #     num_warmup_steps=100,
+    #     num_training_steps=epoch_num * len(train_dataloader),
+    # )
 
     total_loss = 0.
     batchs = []
@@ -44,7 +44,7 @@ def run():
         # print(optimizer.state_dict()["param_groups"])
 
         total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, optimizer,
-                                                                   lr_scheduler, epoch + 1, device, total_loss,
+                                                                   epoch + 1, device, total_loss,
                                                                    batchs, batch_loss, total_average_loss)
         torch.save(mymodel, f'./train_model/{epoch + 1}model.bin')
 
