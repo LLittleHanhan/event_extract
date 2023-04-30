@@ -9,22 +9,17 @@ from var import id2label, test_result_path, schema_path, checkpoint, report_dic
 
 
 def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss, batchs, batch_loss,
-          total_average_loss, isCRF=True):
+          total_average_loss):
     model.train()
     finish_batch_num = (epoch - 1) * len(dataloader)
 
-    for batch, (X, y, z) in enumerate(dataloader, start=1):
+    for batch, (X, y) in enumerate(dataloader, start=1):
         X = X.to(device)
-        if isCRF:
-            y = y.to(device)
-            _, loss = model(X, y, isCRF)
-        else:
-            z = z.to(device)
-            _, loss = model(X, z, isCRF)
+        y = y.to(device)
+        _, loss = model(X, y)
 
         optimizer.zero_grad()
         loss.backward()
-
         optimizer.step()
         lr_scheduler.step()
 
@@ -38,24 +33,21 @@ def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss,
     return total_loss, batchs, batch_loss, total_average_loss
 
 
-def test(dataloader, model, device, isCRF=True):
+def test(dataloader, model, device):
     model.eval()
     with torch.no_grad():
-        for idx, (X, y, z) in enumerate(dataloader, start=1):
-            X, z = X.to(device), z.to(device)
+        for idx, (X, y) in enumerate(dataloader, start=1):
+            X, y = X.to(device), y.to(device)
 
-            _, preds = model(X, isCRF=isCRF)
+            _, preds = model(X)
 
-            # z用作标签和过滤，只看第二句话评估
-            labels = z.cpu().numpy().tolist()
+            labels = y.cpu().numpy().tolist()
 
-            predictions = [
-                [p for (p, t) in zip(one_p, one_t) if t != -100]
-                for one_p, one_t in zip(preds, labels)
-            ]
-            targets = [[t for t in one_t if t != -100] for one_t in labels]
+            end = X['attention_mask'].sum(dim=1)
+            start = X['attention_mask'].sum(dim=1) - X['token_type_ids'].sum(dim=1)
+            targets = [labels[idx][start[idx].item():end[idx].item()] for idx in range(len(labels))]
 
-            report(predictions, targets, X)
+            report(preds, targets, X)
 
             if idx % 100 == 0:
                 print('test:', idx, '/', len(dataloader))

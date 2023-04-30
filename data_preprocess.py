@@ -109,22 +109,16 @@ def collote_fn(batch_samples):
     )
 
     batch_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
-    addn100_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
     for idx, (question, text) in enumerate(zip(batch_question, batch_text)):
         encoding = tokenizer(question, text, truncation=True, max_length=512)
-        for (start,end) in zip(batch_samples[idx]['argu_start'],batch_samples[idx]['argu_end']):
+        for (start, end) in zip(batch_samples[idx]['argu_start'], batch_samples[idx]['argu_end']):
             token_start = encoding.char_to_token(start, sequence_index=1)
             token_end = encoding.char_to_token(end, sequence_index=1)
-            # 这个label针对crf的mask的范围
+
             batch_label[idx][token_start] = label2id['B']
             batch_label[idx][token_start + 1:token_end + 1] = label2id['I']
-            # 这个是实际要看的范围
-            addn100_label[idx][token_start] = label2id['B']
-            addn100_label[idx][token_start + 1:token_end + 1] = label2id['I']
-        addn100_label[idx][0:encoding.char_to_token(0, sequence_index=1)] = -100
-        addn100_label[idx][len(encoding.tokens()):] = -100
 
-    return batch_inputs, torch.tensor(batch_label), torch.tensor(addn100_label, dtype=torch.long)
+    return batch_inputs, torch.tensor(batch_label)
 
 
 if __name__ == '__main__':
@@ -144,5 +138,4 @@ if __name__ == '__main__':
         # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
         # print('batch_y shape:', batch_y.shape)
         # print(batch_X)
-        print(batch_y)
-
+        # print(batch_y)

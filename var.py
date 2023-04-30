@@ -45,14 +45,12 @@ with open(schema_path, 'r', encoding='utf-8') as f:
         for role in json_data['role_list']:
             report_dic[event_type + '-' + role['role']] = [0,0]
 
-
 #
 checkpoint = './chinese-roberta-wwm-ext'
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
-
 train_batch_size = 8
-dev_batch_size = 32
-learning_rate = 2e-5
+dev_batch_size = 64
+CRF_learning_rate = 2e-3
+bert_learning_rate = 2e-5
 epoch_num = 5
