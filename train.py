@@ -8,7 +8,7 @@ from transformers import AutoTokenizer
 from var import id2label, test_result_path, schema_path, checkpoint, report_dic
 
 
-def train(dataloader, model, optimizer, epoch, device, total_loss, batchs, batch_loss,
+def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss, batchs, batch_loss,
           total_average_loss):
     model.train()
     finish_batch_num = (epoch - 1) * len(dataloader)
@@ -21,7 +21,7 @@ def train(dataloader, model, optimizer, epoch, device, total_loss, batchs, batch
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        # lr_scheduler.step()
+        lr_scheduler.step()
 
         total_loss += loss.item()
         if batch % 100 == 0:
