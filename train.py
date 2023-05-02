@@ -47,7 +47,7 @@ def test(dataloader, model, device):
             start = X['attention_mask'].sum(dim=1) - X['token_type_ids'].sum(dim=1)
             targets = [labels[idx][start[idx].item():end[idx].item()] for idx in range(len(labels))]
 
-            report(preds, targets, X)
+            analyze(preds, targets, X)
 
             if idx % 100 == 0:
                 print('test:', idx, '/', len(dataloader))
@@ -63,7 +63,7 @@ def draw(batchs, batch_loss, total_average_loss):
     plt.show()
 
 
-def report(preds, true_labels, X):
+def analyze(preds, true_labels, X):
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     for (pred, label, input_ids) in zip(preds, true_labels, X['input_ids']):
         seq = str(tokenizer.decode(input_ids, skip_special_tokens=True)).replace(' ', '')
