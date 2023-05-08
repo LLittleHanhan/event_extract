@@ -13,10 +13,11 @@ def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss,
     model.train()
     finish_batch_num = (epoch - 1) * len(dataloader)
 
-    for batch, (X, y) in enumerate(dataloader, start=1):
+    for batch, (X, y, z) in enumerate(dataloader, start=1):
         X = X.to(device)
         y = y.to(device)
-        _, loss = model(X, y)
+        z = z.to(device)
+        _, loss = model(X, z, y)
 
         optimizer.zero_grad()
         loss.backward()
@@ -24,7 +25,7 @@ def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss,
         lr_scheduler.step()
 
         total_loss += loss.item()
-        if batch % 100 == 0:
+        if batch % 2 == 0:
             total_batch = finish_batch_num + batch
             print('train:batch:', batch, '/', len(dataloader), '\t\t\t', 'loss:', total_loss / total_batch)
             batchs.append(total_batch)
@@ -36,10 +37,10 @@ def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss,
 def test(dataloader, model, device):
     model.eval()
     with torch.no_grad():
-        for idx, (X, y) in enumerate(dataloader, start=1):
-            X, y = X.to(device), y.to(device)
+        for idx, (X, y, z) in enumerate(dataloader, start=1):
+            X, y, z = X.to(device), y.to(device), z.to(device)
 
-            _, preds = model(X)
+            _, preds = model(X, z)
 
             labels = y.cpu().numpy().tolist()
 

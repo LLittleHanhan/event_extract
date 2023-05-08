@@ -46,7 +46,7 @@ with open(schema_path, 'r', encoding='utf-8') as f:
             report_dic[event_type + '-' + role['role']] = [0,0]
 
 #
-checkpoint = './chinese-roberta-wwm-ext'
+checkpoint = './bert-base-chinese'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
 train_batch_size = 4

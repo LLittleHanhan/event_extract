@@ -108,16 +108,32 @@ def collote_fn(batch_samples):
     )
 
     batch_label = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
+    trigger_position = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
     for idx, (question, text) in enumerate(zip(batch_question, batch_text)):
         encoding = tokenizer(question, text, truncation=True, max_length=512)
         for (start, end) in zip(batch_samples[idx]['argu_start'], batch_samples[idx]['argu_end']):
             token_start = encoding.char_to_token(start, sequence_index=1)
             token_end = encoding.char_to_token(end, sequence_index=1)
-
             batch_label[idx][token_start] = label2id['B']
             batch_label[idx][token_start + 1:token_end + 1] = label2id['I']
 
-    return batch_inputs, torch.tensor(batch_label)
+        # 加入位置信息
+        trigger_start = encoding.char_to_token(batch_samples[idx]['trigger_start'], sequence_index=1) - 1
+        trigger_end = encoding.char_to_token(batch_samples[idx]['trigger_end'], sequence_index=1) + 1
+        second_seq_start = encoding.char_to_token(0, sequence_index=1)
+        second_seq_end = encoding.char_to_token(len(batch_samples[idx]['text']) - 1, sequence_index=1)
+        count = 1
+        while trigger_start >= second_seq_start:
+            trigger_position[idx][trigger_start] = count
+            count += 1
+            trigger_start -= 1
+        count = 1
+        while trigger_end <= second_seq_end:
+            trigger_position[idx][trigger_end] = count
+            count += 1
+            trigger_end += 1
+
+    return batch_inputs, torch.tensor(batch_label), torch.tensor(trigger_position)
 
 
 if __name__ == '__main__':
@@ -131,10 +147,21 @@ if __name__ == '__main__':
     print(len(dev_dataloader))
     print(len(train_dataloader))
 
-    it = (iter(train_dataloader))
+    it = iter(train_dataloader)
     while True:
         batch_X, batch_y, batch_z = next(it)
+        from torch.utils.tensorboard import SummaryWriter
+        from model import myBert
+
+        model = myBert.from_pretrained('./bert-base-chinese')
+        writer = SummaryWriter('./tensorboard')
+        writer.add_graph(model,
+                         input_to_model=[
+                             {'input_ids': batch_X['input_ids'], 'attention_mask': batch_X['attention_mask'],
+                              'token_type_ids': batch_X['token_type_ids']}, batch_z, batch_y])
         # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
         # print('batch_y shape:', batch_y.shape)
         # print(batch_X)
-        # print(batch_y)
+        print(batch_y)
+        print(batch_z)
+        break
