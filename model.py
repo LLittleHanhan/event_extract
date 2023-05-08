@@ -11,11 +11,11 @@ class myBert(BertPreTrainedModel):
         self.bert = BertModel(config, add_pooling_layer=False)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
 
-        self.trigger_embedding = nn.Embedding(num_embeddings=512, embedding_dim=256)
+        self.trigger_embedding = nn.Embedding(num_embeddings=512, embedding_dim=128)
         # 256+768
-        self.lay_norm = nn.LayerNorm(1024, eps=config.layer_norm_eps)
+        self.lay_norm = nn.LayerNorm(896, eps=config.layer_norm_eps)
 
-        self.classifier = nn.Linear(1024, len(id2label))
+        self.classifier = nn.Linear(896, len(id2label))
         self.crf = CRF(len(id2label), batch_first=True)
         self.post_init()
 
@@ -58,8 +58,8 @@ class myBert(BertPreTrainedModel):
 if __name__ == '__main__':
     from transformers import AutoConfig
 
-    config = AutoConfig.from_pretrained('./bert-base-chinese')
-    model = myBert.from_pretrained('./bert-base-chinese')
+    config = AutoConfig.from_pretrained('./chinese-roberta-wwm-ext')
+    model = myBert.from_pretrained('./chinese-roberta-wwm-ext')
     print(model)
     for idx, (name, para) in enumerate(model.named_parameters()):
         print(idx + 1, name, para.shape, para.numel())

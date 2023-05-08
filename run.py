@@ -22,15 +22,18 @@ def run():
 
     params = [
         {"params": mymodel.bert.parameters(), "lr": bert_learning_rate},
-        {"params": mymodel.classifier.parameters(), "lr": bert_learning_rate},
+        {"params": mymodel.trigger_embedding.parameters(), "lr": CRF_learning_rate},
+        {"params": mymodel.lay_norm.parameters(), "lr": CRF_learning_rate},
+        {"params": mymodel.classifier.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.crf.parameters(), "lr": CRF_learning_rate},
     ]
     optimizer = torch.optim.AdamW(params)
-    # print(optimizer.state_dict()["param_groups"])
+    for lr in optimizer.state_dict()["param_groups"]:
+        print(lr)
     lr_scheduler = get_scheduler(
         "linear",
         optimizer=optimizer,
-        num_warmup_steps=100,
+        num_warmup_steps=epoch_num * len(train_dataloader) * 0.1,
         num_training_steps=epoch_num * len(train_dataloader),
     )
 
@@ -48,7 +51,6 @@ def run():
         torch.save(mymodel, f'./train_model/{epoch + 1}model.bin')
         end_time = time.time()
         print('time', end_time - start_time)
-
 
         # for name, para in mymodel.named_parameters():
         #     if name == 'crf.transitions':

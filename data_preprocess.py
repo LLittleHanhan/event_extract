@@ -120,8 +120,8 @@ def collote_fn(batch_samples):
         # 加入位置信息
         trigger_start = encoding.char_to_token(batch_samples[idx]['trigger_start'], sequence_index=1) - 1
         trigger_end = encoding.char_to_token(batch_samples[idx]['trigger_end'], sequence_index=1) + 1
-        second_seq_start = encoding.char_to_token(0, sequence_index=1)
-        second_seq_end = encoding.char_to_token(len(batch_samples[idx]['text']) - 1, sequence_index=1)
+        second_seq_start = (batch_inputs['attention_mask'][idx] - batch_inputs['token_type_ids'][idx]).squeeze(0).sum().item()
+        second_seq_end = batch_inputs['attention_mask'][idx].squeeze(0).sum().item() - 2
         count = 1
         while trigger_start >= second_seq_start:
             trigger_position[idx][trigger_start] = count
@@ -150,18 +150,17 @@ if __name__ == '__main__':
     it = iter(train_dataloader)
     while True:
         batch_X, batch_y, batch_z = next(it)
-        from torch.utils.tensorboard import SummaryWriter
-        from model import myBert
-
-        model = myBert.from_pretrained('./bert-base-chinese')
-        writer = SummaryWriter('./tensorboard')
-        writer.add_graph(model,
-                         input_to_model=[
-                             {'input_ids': batch_X['input_ids'], 'attention_mask': batch_X['attention_mask'],
-                              'token_type_ids': batch_X['token_type_ids']}, batch_z, batch_y])
+        # from torch.utils.tensorboard import SummaryWriter
+        # from model import myBert
+        #
+        # model = myBert.from_pretrained('./chinese-roberta-wwm-ext')
+        # writer = SummaryWriter('./gggg')
+        # writer.add_graph(model,
+        #                  input_to_model=[
+        #                      {'input_ids': batch_X['input_ids'], 'attention_mask': batch_X['attention_mask'],
+        #                       'token_type_ids': batch_X['token_type_ids']}, batch_z, batch_y])
         # print('batch_X shape:', {k: v.shape for k, v in batch_X.items()})
         # print('batch_y shape:', batch_y.shape)
         # print(batch_X)
-        print(batch_y)
-        print(batch_z)
-        break
+        # print(batch_y)
+        # print(batch_z)

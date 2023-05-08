@@ -45,12 +45,12 @@ with torch.no_grad():
                 _, end = mapping[idx + offset]
                 answer.append(sentence[start:end])
             idx += 1
-        if len(answer) == 0:
-            print(question)
-            print(sentence)
-            print(answer)
-            print(data['argu'])
-            print('\n')
+        # if len(answer) == 0:
+        print(question)
+        print(sentence)
+        print(answer)
+        print(data['argu'])
+        print('\n')
 
 
 
