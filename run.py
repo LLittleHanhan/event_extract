@@ -24,6 +24,7 @@ def run():
         {"params": mymodel.bert.parameters(), "lr": bert_learning_rate},
         {"params": mymodel.trigger_embedding.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.lay_norm.parameters(), "lr": CRF_learning_rate},
+        {"params": mymodel.mid_linear.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.classifier.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.crf.parameters(), "lr": CRF_learning_rate},
     ]
