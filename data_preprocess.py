@@ -133,7 +133,7 @@ def collote_fn(batch_samples):
         count = 1
         while trigger_end <= second_seq_end:
             trigger_position[idx][trigger_end] = count
-            if encoding.tokens()[trigger_start] in mark and count < 4:
+            if encoding.tokens()[trigger_end] in mark and count < 4:
                 count += 1
             trigger_end += 1
         # for num, token in enumerate(encoding.tokens()):

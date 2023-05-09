@@ -23,6 +23,7 @@ model = torch.load('./train_model/1model.bin').to(device)
 model.eval()
 with torch.no_grad():
     dataset = myDataSet(dev_path)
+    no_answer = 0
     for data in dataset:
         question = '触发词为' + data['trigger'] + '的事件' + str(data['event_type']).split('-')[1] + '中角色' + data[
             'role'] + '是什么？'
@@ -30,9 +31,10 @@ with torch.no_grad():
 
 
 
+
         inputs = tokenizer(question, sentence, truncation=True, return_tensors="pt", max_length=512,
                            return_offsets_mapping=True).to(device)
-        print(inputs.tokens())
+
         mapping = inputs.pop('offset_mapping').squeeze(0)
         offset = (inputs['attention_mask'] - inputs['token_type_ids']).squeeze(0).sum().item()
 
@@ -44,14 +46,19 @@ with torch.no_grad():
         second_seq_end = inputs['attention_mask'].squeeze(0).sum().item() - 2
         count = 1
 
+        mark = ['。', '？', '！', '；', '?', '!', ';']
         while trigger_start >= second_seq_start:
             trigger_position[0][trigger_start] = count
-            count += 1
+            if inputs.tokens()[trigger_start] in mark and count < 4:
+                count += 1
             trigger_start -= 1
         count = 1
+
+
         while trigger_end <= second_seq_end:
             trigger_position[0][trigger_end] = count
-            count += 1
+            if inputs.tokens()[trigger_end] in mark and count < 4:
+                count += 1
             trigger_end += 1
 
         _, pred = model(inputs, torch.tensor(trigger_position).to(device))
@@ -67,12 +74,14 @@ with torch.no_grad():
                 _, end = mapping[idx + offset]
                 answer.append(sentence[start:end])
             idx += 1
-        # if len(answer) == 0:
+        if len(answer) == 0:
+            no_answer +=1
         print(question)
         print(sentence)
         print(answer)
         print(data['argu'])
         print('\n')
+    print(no_answer)
 
 '''
 触发词为塌陷的事件坍/垮塌中角色坍塌主体是什么？

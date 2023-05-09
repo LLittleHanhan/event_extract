@@ -71,7 +71,7 @@ def run():
             print(k, ' 正确:', v[0], ' 错误:', v[1], ' 正确率:', acc)
         print(sum_r, sum_w)
         print('总正确率:', float(sum_r) / (sum_r + sum_w))
-    # draw(batchs, batch_loss, total_average_loss)
+    draw(batchs, batch_loss, total_average_loss)
     print("Done!")
 
 
