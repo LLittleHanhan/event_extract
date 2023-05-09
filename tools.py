@@ -137,7 +137,7 @@ print(len_dic)
 #
 # list1 = [0, 1]
 # list2 = [0, 1, 2]
-# with open(train_path, 'r', encoding='utf-8') as f, open('./DuEE1.0/delete_duee_train.json', 'w', encoding='utf-8') as d:
+# with open(new_train_path, 'r', encoding='utf-8') as f, open('./DuEE1.0/delete_duee_train.json', 'w', encoding='utf-8') as d:
 #     for line in f.readlines():
 #         json_data = json.loads(line)
 #         event_type_list = []

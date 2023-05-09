@@ -116,6 +116,7 @@ def collote_fn(batch_samples):
         for (start, end) in zip(batch_samples[idx]['argu_start'], batch_samples[idx]['argu_end']):
             token_start = encoding.char_to_token(start, sequence_index=1)
             token_end = encoding.char_to_token(end, sequence_index=1)
+
             batch_label[idx][token_start] = label2id['B']
             batch_label[idx][token_start + 1:token_end + 1] = label2id['I']
 
