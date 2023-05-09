@@ -4,7 +4,7 @@ import torch
 # 文件路径
 dev_path = './DuEE1.0/duee_dev.json'
 test_path = './DuEE1.0/duee_test.json'
-train_path = './DuEE1.0/new_duee_train.json'
+train_path = './DuEE1.0/delete_duee_train.json'
 label_path = './DuEE1.0/label.txt'
 test_result_path = './test_result.txt'
 schema_path = './DuEE1.0/duee_event_schema.json'
