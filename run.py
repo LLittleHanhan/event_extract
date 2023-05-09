@@ -18,11 +18,12 @@ def run():
 
     myconfig = AutoConfig.from_pretrained(checkpoint)
     mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
-    # mymodel = torch.load('./train_model/oh_model.bin').to(device)
+    # mymodel = torch.load('./train_model/2.bin').to(device)
 
     params = [
         {"params": mymodel.bert.parameters(), "lr": bert_learning_rate},
         {"params": mymodel.trigger_embedding.parameters(), "lr": CRF_learning_rate},
+        {"params": mymodel.mid_linear.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.lay_norm.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.classifier.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.crf.parameters(), "lr": CRF_learning_rate},
@@ -58,6 +59,7 @@ def run():
 
         for k, v in report_dic.items():
             v[0] = v[1] = v[2] = v[3] = v[4] = 0
+        test(train_dataloader, mymodel, device)
         test(dev_dataloader, mymodel, device)
         report()
     draw(batchs, batch_loss, total_average_loss)

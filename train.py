@@ -111,7 +111,7 @@ def analyze(preds, true_labels, X):
         else:
             flag = 1
             for idx in range(len(pred_start)):
-                if pred_end[idx] <= label_start[idx] or pred_start[idx] >= label_end[idx]:
+                if pred_end[idx] < label_start[idx] or pred_start[idx] > label_end[idx]:
                     flag = 0
                     break
             if flag:

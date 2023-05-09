@@ -19,7 +19,7 @@ from var import device, id2label, dev_path, checkpoint
 '''
 
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-model = torch.load('./train_model/oh_model.bin').to(device)
+model = torch.load('./train_model/2.bin').to(device)
 model.eval()
 with torch.no_grad():
     dataset = myDataSet(dev_path)
@@ -57,7 +57,6 @@ with torch.no_grad():
             if inputs.tokens()[trigger_end] in mark and count < 4:
                 count += 1
             trigger_end += 1
-        print(trigger_position)
         _, pred = model(inputs, torch.tensor(trigger_position).to(device))
         pred = pred[0]
 
