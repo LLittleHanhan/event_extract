@@ -120,18 +120,24 @@ def collote_fn(batch_samples):
         # 加入位置信息
         trigger_start = encoding.char_to_token(batch_samples[idx]['trigger_start'], sequence_index=1) - 1
         trigger_end = encoding.char_to_token(batch_samples[idx]['trigger_end'], sequence_index=1) + 1
-        second_seq_start = (batch_inputs['attention_mask'][idx] - batch_inputs['token_type_ids'][idx]).squeeze(0).sum().item()
+        second_seq_start = (batch_inputs['attention_mask'][idx] - batch_inputs['token_type_ids'][idx]).squeeze(
+            0).sum().item()
         second_seq_end = batch_inputs['attention_mask'][idx].squeeze(0).sum().item() - 2
         count = 1
+        mark = ['。', '？', '！', '；', '?', '!', ';']
         while trigger_start >= second_seq_start:
             trigger_position[idx][trigger_start] = count
-            count += 1
+            if encoding.tokens()[trigger_start] in mark and count < 4:
+                count += 1
             trigger_start -= 1
         count = 1
         while trigger_end <= second_seq_end:
             trigger_position[idx][trigger_end] = count
-            count += 1
+            if encoding.tokens()[trigger_start] in mark and count < 4:
+                count += 1
             trigger_end += 1
+        # for num, token in enumerate(encoding.tokens()):
+        #     print(token, trigger_position[idx][num])
 
     return batch_inputs, torch.tensor(batch_label), torch.tensor(trigger_position)
 
@@ -154,7 +160,7 @@ if __name__ == '__main__':
         # from model import myBert
         #
         # model = myBert.from_pretrained('./chinese-roberta-wwm-ext')
-        # writer = SummaryWriter('./gggg')
+        # writer = SummaryWriter('./tensorboard')
         # writer.add_graph(model,
         #                  input_to_model=[
         #                      {'input_ids': batch_X['input_ids'], 'attention_mask': batch_X['attention_mask'],

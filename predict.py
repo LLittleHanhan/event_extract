@@ -28,12 +28,34 @@ with torch.no_grad():
             'role'] + '是什么？'
         sentence = data['text']
 
+
+
         inputs = tokenizer(question, sentence, truncation=True, return_tensors="pt", max_length=512,
                            return_offsets_mapping=True).to(device)
+        print(inputs.tokens())
         mapping = inputs.pop('offset_mapping').squeeze(0)
-        _, pred = model(inputs)
-        pred = pred[0]
         offset = (inputs['attention_mask'] - inputs['token_type_ids']).squeeze(0).sum().item()
+
+        # 位置信息
+        trigger_position = np.zeros(inputs['input_ids'].shape, dtype=int)
+        trigger_start = inputs.char_to_token(data['trigger_start'], sequence_index=1) - 1
+        trigger_end = inputs.char_to_token(data['trigger_end'], sequence_index=1) + 1
+        second_seq_start = offset
+        second_seq_end = inputs['attention_mask'].squeeze(0).sum().item() - 2
+        count = 1
+
+        while trigger_start >= second_seq_start:
+            trigger_position[0][trigger_start] = count
+            count += 1
+            trigger_start -= 1
+        count = 1
+        while trigger_end <= second_seq_end:
+            trigger_position[0][trigger_end] = count
+            count += 1
+            trigger_end += 1
+
+        _, pred = model(inputs, torch.tensor(trigger_position).to(device))
+        pred = pred[0]
 
         idx = 0
         answer = []
@@ -51,8 +73,6 @@ with torch.no_grad():
         print(answer)
         print(data['argu'])
         print('\n')
-
-
 
 '''
 触发词为塌陷的事件坍/垮塌中角色坍塌主体是什么？

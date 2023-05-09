@@ -49,8 +49,8 @@ with open(schema_path, 'r', encoding='utf-8') as f:
 checkpoint = './chinese-roberta-wwm-ext'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
-train_batch_size = 8
+train_batch_size = 4
 dev_batch_size = 64
-CRF_learning_rate = 1e-3
-bert_learning_rate = 1e-5
-epoch_num = 10
+CRF_learning_rate = 2e-4
+bert_learning_rate = 2e-5
+epoch_num = 1
