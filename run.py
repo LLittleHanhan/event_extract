@@ -60,6 +60,9 @@ def run():
         for k, v in report_dic.items():
             v[0] = v[1] = v[2] = v[3] = v[4] = 0
         test(train_dataloader, mymodel, device)
+        report()
+        for k, v in report_dic.items():
+            v[0] = v[1] = v[2] = v[3] = v[4] = 0
         test(dev_dataloader, mymodel, device)
         report()
     draw(batchs, batch_loss, total_average_loss)
@@ -84,7 +87,7 @@ def report():
         else:
             acc = float(v[0]) / (v[0] + v[1])
             c_acc = float(v[4]) / (v[0] + v[1])
-        print(k, ' 正确:', v[0], ' 错误:', v[1], '空:', v[2], '多:', v[3], '模糊正确:', v[4], ' 正确率:', acc, '模糊正确率:', c_acc)
+        # print(k, ' 正确:', v[0], ' 错误:', v[1], '空:', v[2], '多:', v[3], '模糊正确:', v[4], ' 正确率:', acc, '模糊正确率:', c_acc)
     print(sum_r, sum_w, no_answer, surplus, c_sum_r)
     print('总正确率:', float(sum_r) / (sum_r + sum_w))
     print('模糊正确率:', float(c_sum_r) / (sum_r + sum_w))

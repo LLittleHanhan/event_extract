@@ -25,7 +25,7 @@ def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss,
         lr_scheduler.step()
 
         total_loss += loss.item()
-        if batch % 100 == 0:
+        if batch % 1000 == 0:
             total_batch = finish_batch_num + batch
             print('train:batch:', batch, '/', len(dataloader), '\t\t\t', 'loss:', total_loss / total_batch)
             batchs.append(total_batch)
@@ -50,7 +50,7 @@ def test(dataloader, model, device):
 
             analyze(preds, targets, X)
 
-            if idx % 100 == 0:
+            if idx % 500 == 0:
                 print('test:', idx, '/', len(dataloader))
 
 
