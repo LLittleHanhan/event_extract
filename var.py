@@ -30,7 +30,7 @@ infor_path = './DuEE1.0/info.txt'
 #         l.write(d + '\n')
 label2id = {}
 id2label = {}
-with open(label_path, 'r',encoding='utf-8') as f:
+with open(label_path, 'r', encoding='utf-8') as f:
     for line in f.readlines():
         id, label = line.strip().split(' ')
         label2id[label] = int(id)
@@ -43,14 +43,17 @@ with open(schema_path, 'r', encoding='utf-8') as f:
         json_data = json.loads(line)
         event_type = str(json_data['event_type']).split('-')[1]
         for role in json_data['role_list']:
-            report_dic[event_type + '-' + role['role']] = [0,0]
+            report_dic[event_type + '-' + role['role']] = [0, 0, 0, 0,0]
+            # 正确，错误，空，多余,模糊正确
 
 #
 checkpoint = './chinese-roberta-wwm-ext'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
-train_batch_size = 8
+train_batch_size = 64
 dev_batch_size = 64
 CRF_learning_rate = 2e-4
 bert_learning_rate = 2e-5
-epoch_num = 5
+epoch_num = 1
+
+#

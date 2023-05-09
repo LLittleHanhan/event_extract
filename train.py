@@ -68,12 +68,51 @@ def analyze(preds, true_labels, X):
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     for (pred, label, input_ids) in zip(preds, true_labels, X['input_ids']):
         seq = str(tokenizer.decode(input_ids, skip_special_tokens=True)).replace(' ', '')
-        seq = re.split('触发词为|的事件|中角色|是什么?', seq)
+        seq = re.split('触发词为|的事件|中角色|是什么？', seq)
         event_type = seq[2]
         event_trigger = seq[1]
         role = seq[3]
+        # 正确
         if pred == label:
             report_dic[event_type + '-' + role][0] += 1
-
+        # 错误
         else:
             report_dic[event_type + '-' + role][1] += 1
+
+        pred_start = []
+        pred_end = []
+        idx = 0
+        while idx < len(pred):
+            if pred[idx] == 1:
+                pred_start.append(idx)
+                while idx + 1 < len(pred) and pred[idx + 1] == 2:
+                    idx += 1
+                pred_end.append(idx)
+            idx += 1
+
+        label_start = []
+        label_end = []
+        idx = 0
+        while idx < len(label):
+            if label[idx] == 1:
+                label_start.append(idx)
+                while idx + 1 < len(label) and label[idx + 1] == 2:
+                    idx += 1
+                label_end.append(idx)
+            idx += 1
+
+        # 空
+        if len(pred_start) == 0:
+            report_dic[event_type + '-' + role][2] += 1
+        # 多
+        elif len(pred_start) != len(label_start):
+            report_dic[event_type + '-' + role][3] += 1
+        # 模糊
+        else:
+            flag = 1
+            for idx in range(len(pred_start)):
+                if pred_end[idx] <= label_start[idx] or pred_start[idx] >= label_end[idx]:
+                    flag = 0
+                    break
+            if flag:
+                report_dic[event_type + '-' + role][4] += 1

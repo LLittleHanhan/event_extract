@@ -19,7 +19,7 @@ from var import device, id2label, dev_path, checkpoint
 '''
 
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-model = torch.load('./train_model/1model.bin').to(device)
+model = torch.load('./train_model/oh_model.bin').to(device)
 model.eval()
 with torch.no_grad():
     dataset = myDataSet(dev_path)
@@ -28,9 +28,6 @@ with torch.no_grad():
         question = '触发词为' + data['trigger'] + '的事件' + str(data['event_type']).split('-')[1] + '中角色' + data[
             'role'] + '是什么？'
         sentence = data['text']
-
-
-
 
         inputs = tokenizer(question, sentence, truncation=True, return_tensors="pt", max_length=512,
                            return_offsets_mapping=True).to(device)
@@ -46,6 +43,7 @@ with torch.no_grad():
         second_seq_end = inputs['attention_mask'].squeeze(0).sum().item() - 2
         count = 1
 
+
         mark = ['。', '？', '！', '；', '?', '!', ';']
         while trigger_start >= second_seq_start:
             trigger_position[0][trigger_start] = count
@@ -54,13 +52,12 @@ with torch.no_grad():
             trigger_start -= 1
         count = 1
 
-
         while trigger_end <= second_seq_end:
             trigger_position[0][trigger_end] = count
             if inputs.tokens()[trigger_end] in mark and count < 4:
                 count += 1
             trigger_end += 1
-
+        print(trigger_position)
         _, pred = model(inputs, torch.tensor(trigger_position).to(device))
         pred = pred[0]
 
@@ -75,7 +72,7 @@ with torch.no_grad():
                 answer.append(sentence[start:end])
             idx += 1
         if len(answer) == 0:
-            no_answer +=1
+            no_answer += 1
         print(question)
         print(sentence)
         print(answer)

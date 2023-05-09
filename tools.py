@@ -9,6 +9,7 @@ test_path = './DuEE1.0/duee_test.json'
 train_path = './DuEE1.0/duee_train.json'
 label_path = './DuEE1.0/label.txt'
 new_train_path = './DuEE1.0/new_duee_train.json'
+delete_train_path = './DuEE1.0/delete_duee_train.json'
 schema_path = './DuEE1.0/duee_event_schema.json'
 infor_path = './DuEE1.0/info.txt'
 
@@ -51,7 +52,6 @@ infor_path = './DuEE1.0/info.txt'
                  "class": "人生"}]}
 """
 
-'''
 def draw(listx, listy):
     plt.rcParams["font.sans-serif"] = ["SimHei"]
     plt.rcParams["axes.unicode_minus"] = False
@@ -94,7 +94,7 @@ for idx, event_role in enumerate(event_role_list):
     event_role_label2id[event_role] = idx
     event_role_id2label[idx] = event_role
 
-with open(train_path, 'r', encoding='utf-8') as f:
+with open(delete_train_path, 'r', encoding='utf-8') as f:
     for line in f.readlines():
         json_data = json.loads(line)
 
@@ -131,7 +131,27 @@ for len in text_len:
         len_dic['400~'] += 1
 print(len_dic)
 
-'''
+
+# # 砍数据
+# import random
+#
+# list1 = [0, 1]
+# list2 = [0, 1, 2]
+# with open(train_path, 'r', encoding='utf-8') as f, open('./DuEE1.0/delete_duee_train.json', 'w', encoding='utf-8') as d:
+#     for line in f.readlines():
+#         json_data = json.loads(line)
+#         event_type_list = []
+#         for event in json_data['event_list']:
+#             event_type_list.append(event['event_type'])
+#         if '竞赛行为-胜负' in event_type_list and random.choice(list1) == 0:
+#             continue
+#         if '产品行为-发布' in event_type_list and random.choice(list1) == 0:
+#             continue
+#         if '人生-死亡' in event_type_list and random.choice(list2) == 0:
+#             continue
+#         if '司法行为-逮捕' in event_type_list and random.choice(list1) == 0:
+#             continue
+#         d.write(json.dumps(json_data, ensure_ascii=False) + '\n')
 
 '''
 'text': '6月7日报道，IBM将裁员超过1000人。IBM周四确认，将裁减一千多人。据知情人士称，此次裁员将影响到约1700名员工，约占IBM全球逾34万员工中的0.5%。IBM股价今年累计上涨16%，但该公司4月发布的财报显示，一季度营收下降5%，低于市场预期。', 
@@ -145,14 +165,26 @@ print(len_dic)
 'argu_end': [9]
 }
 '''
-dataset = myDataSet(train_path)
-for data in dataset:
-    event_type = str(data['event_type']).replace('/', '&&')
-    role = str(data['role']).replace('/', '&&')
-    path = './data_analyse/' + event_type + '----' + role + '.txt'
-    with open(path, 'a', encoding='utf-8') as f:
-        f.write(str(data['argu']))
-        f.write('\n')
-    # question = '触发词为' + data['trigger'] + '的事件' + str(data['event_type']).split('-')[1] + '中角色' + data[
-    #     'role'] + '是什么？'
-    # sentence = data['text']
+
+# dataset = myDataSet(train_path)
+# for data in dataset:
+#     event_type = str(data['event_type']).replace('/', '&&')
+#     role = str(data['role']).replace('/', '&&')
+#     path = './data_analyse/' + event_type + '----' + role + '.txt'
+#     with open(path, 'a', encoding='utf-8') as f:
+#         f.write(str(data['argu']))
+#         f.write('\n')
+
+# with open(schema_path, 'r', encoding='utf-8') as s, open('./query.txt', 'w', encoding='utf-8') as l:
+#     mark = []
+#     general = ['时间']
+#     for line in s.readlines():
+#         json_data = json.loads(line)
+#         for role in json_data['role_list']:
+#             string = json_data['event_type'] + '-' + role['role'] + '\n'
+#             if role['role'] in mark:
+#                 continue
+#             if role['role'] in general:
+#                 mark.append(role['role'])
+#                 string = role['role'] + '\n'
+#             l.write(string)

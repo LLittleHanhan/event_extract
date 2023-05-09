@@ -17,8 +17,8 @@ def run():
     train_dataloader = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, collate_fn=collote_fn)
 
     myconfig = AutoConfig.from_pretrained(checkpoint)
-    mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
-    # mymodel = torch.load('./train_model/1model.bin').to(device)
+    # mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
+    mymodel = torch.load('./train_model/oh_model.bin').to(device)
 
     params = [
         {"params": mymodel.bert.parameters(), "lr": bert_learning_rate},
@@ -45,10 +45,10 @@ def run():
 
         start_time = time.time()
         print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
-        total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, optimizer,
-                                                                   lr_scheduler, epoch + 1, device, total_loss,
-                                                                   batchs, batch_loss, total_average_loss)
-        torch.save(mymodel, f'./train_model/{epoch + 1}model.bin')
+        # total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, optimizer,
+        #                                                            lr_scheduler, epoch + 1, device, total_loss,
+        #                                                            batchs, batch_loss, total_average_loss)
+        # torch.save(mymodel, f'./train_model/{epoch + 1}model.bin')
         end_time = time.time()
         print('time', end_time - start_time)
 
@@ -57,22 +57,35 @@ def run():
         #         print(para)
 
         for k, v in report_dic.items():
-            v[0] = v[1] = 0
-        test(dev_dataloader, mymodel, device)
-        sum_r = 0
-        sum_w = 0
-        for k, v in report_dic.items():
-            sum_r += v[0]
-            sum_w += v[1]
-            if v[0] + v[1] == 0:
-                acc = 1.
-            else:
-                acc = float(v[0]) / (v[0] + v[1])
-            print(k, ' 正确:', v[0], ' 错误:', v[1], ' 正确率:', acc)
-        print(sum_r, sum_w)
-        print('总正确率:', float(sum_r) / (sum_r + sum_w))
+            v[0] = v[1] = v[2] = v[3] = v[4] = 0
+        test(train_dataloader, mymodel, device)
+        report()
     draw(batchs, batch_loss, total_average_loss)
     print("Done!")
+
+
+def report():
+    sum_r = 0
+    sum_w = 0
+    no_answer = 0
+    surplus = 0
+    c_sum_r = 0
+    for k, v in report_dic.items():
+        sum_r += v[0]
+        sum_w += v[1]
+        no_answer += v[2]
+        surplus += v[3]
+        c_sum_r += v[4]
+        if v[0] + v[1] == 0:
+            acc = 1.
+            c_acc = 1.
+        else:
+            acc = float(v[0]) / (v[0] + v[1])
+            c_acc = float(v[4]) / (v[0] + v[1])
+        print(k, ' 正确:', v[0], ' 错误:', v[1], '空:', v[2], '多:', v[3], '模糊正确:', v[4], ' 正确率:', acc, '模糊正确率:', c_acc)
+    print(sum_r, sum_w, no_answer, surplus, c_sum_r)
+    print('总正确率:', float(sum_r) / (sum_r + sum_w))
+    print('模糊正确率:', float(c_sum_r) / (sum_r + sum_w))
 
 
 if __name__ == '__main__':
