@@ -69,8 +69,8 @@ class myBert(BertPreTrainedModel):
 if __name__ == '__main__':
     from transformers import AutoConfig
 
-    config = AutoConfig.from_pretrained('./chinese-roberta-wwm-ext')
-    model = myBert.from_pretrained('./chinese-roberta-wwm-ext')
+    config = AutoConfig.from_pretrained('./bert-base-chinese')
+    model = myBert.from_pretrained('./bert-base-chinese')
     print(model)
     for idx, (name, para) in enumerate(model.named_parameters()):
         print(idx + 1, name, para.shape, para.numel())

@@ -98,6 +98,8 @@ def collote_fn(batch_samples):
             'role'] + '是什么？'
         batch_question.append(question)
         batch_text.append(sample['text'])
+
+
     batch_inputs = tokenizer(
         batch_question,
         batch_text,
