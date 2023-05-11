@@ -1,11 +1,9 @@
 import re
 import torch
-from seqeval.metrics import classification_report
-from seqeval.scheme import IOB2
 import matplotlib.pyplot as plt
 from transformers import AutoTokenizer
 
-from var import id2label, test_result_path, schema_path, checkpoint, report_dic
+from var import checkpoint, report_dic
 
 
 def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss, batchs, batch_loss,
@@ -25,7 +23,7 @@ def train(dataloader, model, optimizer, lr_scheduler, epoch, device, total_loss,
         lr_scheduler.step()
 
         total_loss += loss.item()
-        if batch % 300 == 0:
+        if batch % 100 == 0:
             total_batch = finish_batch_num + batch
             print('train:batch:', batch, '/', len(dataloader), '\t\t\t', 'loss:', total_loss / total_batch)
             batchs.append(total_batch)

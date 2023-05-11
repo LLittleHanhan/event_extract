@@ -99,7 +99,6 @@ def collote_fn(batch_samples):
         batch_question.append(question)
         batch_text.append(sample['text'])
 
-
     batch_inputs = tokenizer(
         batch_question,
         batch_text,
@@ -113,6 +112,8 @@ def collote_fn(batch_samples):
     trigger_position = np.zeros(batch_inputs['input_ids'].shape, dtype=int)
     for idx, (question, text) in enumerate(zip(batch_question, batch_text)):
         encoding = tokenizer(question, text, truncation=True, max_length=512)
+
+
         for (start, end) in zip(batch_samples[idx]['argu_start'], batch_samples[idx]['argu_end']):
             token_start = encoding.char_to_token(start, sequence_index=1)
             token_end = encoding.char_to_token(end, sequence_index=1)

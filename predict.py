@@ -31,7 +31,7 @@ with torch.no_grad():
 
         inputs = tokenizer(question, sentence, truncation=True, return_tensors="pt", max_length=512,
                            return_offsets_mapping=True).to(device)
-
+        print(inputs.tokens())
         mapping = inputs.pop('offset_mapping').squeeze(0)
         offset = (inputs['attention_mask'] - inputs['token_type_ids']).squeeze(0).sum().item()
 
@@ -72,11 +72,11 @@ with torch.no_grad():
             idx += 1
         if len(answer) == 0:
             no_answer += 1
-        print(question)
-        print(sentence)
-        print(answer)
-        print(data['argu'])
-        print('\n')
+            print(question)
+            print(sentence)
+            print(answer)
+            print(data['argu'])
+            print('\n')
     print(no_answer)
 
 '''

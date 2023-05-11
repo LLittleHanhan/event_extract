@@ -47,12 +47,12 @@ with open(schema_path, 'r', encoding='utf-8') as f:
             # 正确，错误，空，多余,模糊正确
 
 #
-checkpoint = './chinese-roberta-wwm-ext'
+checkpoint = './ernie'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
 train_batch_size = 8
 dev_batch_size = 64
 CRF_learning_rate = 2e-4
 bert_learning_rate = 2e-5
-epoch_num = 20
+epoch_num = 8
 

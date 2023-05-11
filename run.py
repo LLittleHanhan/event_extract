@@ -1,13 +1,13 @@
 import torch
 import time
 from torch.utils.data import DataLoader
-from transformers import get_scheduler, AutoConfig
+from transformers import get_scheduler
 
-from var import device, dev_path, train_path, checkpoint, dev_batch_size, train_batch_size, epoch_num, \
+from var import device, dev_path, train_path, dev_batch_size, train_batch_size, epoch_num, \
     report_dic, bert_learning_rate, CRF_learning_rate
 from data_preprocess import myDataSet, collote_fn
 from train import train, test, draw
-from model import myBert
+from model import myModel
 
 
 def run():
@@ -16,14 +16,13 @@ def run():
     train_data = myDataSet(train_path)
     train_dataloader = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, collate_fn=collote_fn)
 
-    myconfig = AutoConfig.from_pretrained(checkpoint)
-    mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
+    mymodel = myModel().to(device)
     # mymodel = torch.load('./train_model/2.bin').to(device)
 
     params = [
-        {"params": mymodel.bert.parameters(), "lr": bert_learning_rate},
+        {"params": mymodel.ernie.parameters(), "lr": bert_learning_rate},
         {"params": mymodel.trigger_embedding.parameters(), "lr": CRF_learning_rate},
-        {"params": mymodel.mid_linear.parameters(), "lr": CRF_learning_rate},
+        # {"params": mymodel.mid_linear.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.lay_norm.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.classifier.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.crf.parameters(), "lr": CRF_learning_rate},
@@ -57,10 +56,6 @@ def run():
         #     if name == 'crf.transitions':
         #         print(para)
 
-        for k, v in report_dic.items():
-            v[0] = v[1] = v[2] = v[3] = v[4] = 0
-        test(train_dataloader, mymodel, device)
-        report()
         for k, v in report_dic.items():
             v[0] = v[1] = v[2] = v[3] = v[4] = 0
         test(dev_dataloader, mymodel, device)
