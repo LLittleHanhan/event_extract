@@ -27,7 +27,7 @@ class myModel(nn.Module):
         ernie_output = self.ernie(**x)
         sequence_output = ernie_output.last_hidden_state
         sequence_output = self.dropout(sequence_output)
-        torch.set_printoptions(profile="full")
+
 
         trigger_position_feature = self.trigger_embedding(trigger_position)
 
