@@ -21,10 +21,17 @@ myconfig = AutoConfig.from_pretrained(checkpoint)
 mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
 
 
-learning_rate = 1e-5
+bert_learning_rate = 2e-5
+CRF_learning_rate = 2e-4
 epoch_num = 10
 loss_fn = nn.CrossEntropyLoss()
-optimizer = torch.optim.AdamW(mymodel.parameters(), lr=learning_rate)
+params = [
+        {"params": mymodel.bert.parameters(), "lr": bert_learning_rate},
+        {"params": mymodel.classifier.parameters(), "lr": CRF_learning_rate},
+        {"params": mymodel.crf.parameters(), "lr": CRF_learning_rate},
+    ]
+optimizer = torch.optim.AdamW(params)
+
 lr_scheduler = get_scheduler(
     "linear",
     optimizer=optimizer,
