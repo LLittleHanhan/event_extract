@@ -9,13 +9,15 @@ test_result_path = './test_result.txt'
 # id2label
 label2id = {}
 id2label = {}
-with open(label_path, 'r',encoding='utf-8') as f:
+with open(label_path, 'r', encoding='utf-8') as f:
     for line in f.readlines():
         id, label = line.strip().split(' ')
         label2id[label] = int(id)
         id2label[int(id)] = label
 
 #
-checkpoint = './bert-base-chinese'
+checkpoint = './chinese-roberta-wwm-ext'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
+
+

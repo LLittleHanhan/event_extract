@@ -43,12 +43,6 @@ class myDataSet(Dataset):
                     event_tag = {"event_type": event["event_type"], "trigger": event["trigger"],
                                  "start": event["trigger_start_index"],
                                  "end": len(event["trigger"]) + event["trigger_start_index"] - 1}
-                    arguments = []
-                    for argu in event['arguments']:
-                        arguments.append({'role': argu['role'], 'argument': argu['argument'],
-                                          'start': argu['argument_start_index'],
-                                          'end': argu['argument_start_index'] + len(argu['argument']) - 1})
-                    event_tag['arguments'] = arguments
                     tags.append(event_tag)
                 dic["tags"] = tags
                 self.data.append(dic)
@@ -67,17 +61,6 @@ class myDataSet(Dataset):
             {                                                                     }
          ]
 }
-'''
-'''
-{'text': '从三门峡市应急管理局获悉：截至7月19日21时20分，河南省煤气（集团）有限责任公司义马气化厂爆炸事故已造成2人死亡，12人失联，重伤18人（目前生命体征平稳），现场救援正在紧张进行中。', 
- 'tags': [{'event_type': '灾害/意外-爆炸', 'trigger': '爆炸', 'start': 47, 'end': 48, 
-           'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46},
-                         {'role': '死亡人数', 'argument': '2人', 'start': 54, 'end': 55}, 
-                         {'role': '受伤人数', 'argument': '12人', 'start': 59, 'end': 61}]},
-          {'event_type': '人生-死亡', 'trigger': '死亡', 'start': 56, 'end': 57, 
-           'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46}]},
-          {'event_type': '人生-失联', 'trigger': '失联', 'start': 62, 'end': 63, 
-           'arguments': [{'role': '地点', 'argument': '河南省煤气（集团）有限责任公司义马气化厂', 'start': 27, 'end': 46}]}]}
 '''
 
 
@@ -104,25 +87,9 @@ def collote_fn(batch_samples):
             trigger_token_start = encoding.char_to_token(tag['start'])
             trigger_token_end = encoding.char_to_token(tag['end'])
 
-            # print(tag)
-            # print(text)
-            # print(tokenizer.tokenize(text))
-            # print("start:", trigger_token_start)
-            # print("end  :", trigger_token_end)
-
             batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}"]
             batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[f"I-{tag['event_type']}"]
-            # for argu in tag['arguments']:
-            #     trigger_token_start = encoding.char_to_token(argu['start'])
-            #     trigger_token_end = encoding.char_to_token(argu['end'])
-            #     # print(argu['role'])
-            #     # print(argu['argument'])
-            #     # print(trigger_token_start)
-            #     # print(trigger_token_end)
-            #     # print('\n')
-            #     batch_label[t_idx][trigger_token_start] = label2id[f"B-{tag['event_type']}-{argu['role']}"]
-            #     batch_label[t_idx][trigger_token_start + 1:trigger_token_end + 1] = label2id[
-            #         f"I-{tag['event_type']}-{argu['role']}"]
+
     return batch_inputs, torch.tensor(batch_label, dtype=torch.long)
 
 

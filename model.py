@@ -1,9 +1,8 @@
-import torch
 from torch import nn
 from transformers import BertPreTrainedModel, BertModel
 
 from crf import CRF
-from var import id2label
+from var import id2label, checkpoint
 
 
 class myBert(BertPreTrainedModel):
@@ -26,16 +25,15 @@ class myBert(BertPreTrainedModel):
             loss = -self.crf(emissions=logits,
                              tags=label, mask=x['attention_mask'], reduction="token_mean")
         else:
-            mask = torch.ones_like(logits[:, :, 0])
-            loss = self.crf.decode(emissions=logits, mask=mask)
+            loss = self.crf.decode(emissions=logits, mask=x['attention_mask'])
         return logits, loss
 
 
 if __name__ == '__main__':
     from transformers import AutoConfig
 
-    config = AutoConfig.from_pretrained('./bert-base-chinese')
-    model = myBert.from_pretrained('./bert-base-chinese', config=config)
+    config = AutoConfig.from_pretrained(checkpoint)
+    model = myBert.from_pretrained(checkpoint, config=config)
 
     for name, para in model.named_parameters():
         print(name, para.shape, para.numel())

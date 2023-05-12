@@ -73,11 +73,6 @@ with open(schema_path, 'r', encoding='utf-8') as s, open(label_path, 'w', encodi
         idx += 1
         data.append(str(idx) + ' ' + 'I-' + json_data['event_type'])
         idx += 1
-        # for role in json_data['role_list']:
-        #     data.append(str(idx) + ' ' + 'B-' + json_data['event_type'] + '-' + role['role'])
-        #     idx += 1
-        #     data.append(str(idx) + ' ' + 'I-' + json_data['event_type'] + '-' + role['role'])
-        #     idx +=1
     for d in data:
         l.write(d + '\n')
 

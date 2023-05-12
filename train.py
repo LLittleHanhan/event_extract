@@ -14,21 +14,18 @@ def train(dataloader, model, loss_fn, optimizer, lr_scheduler, epoch, device, to
     for batch, (X, y) in enumerate(dataloader, start=1):
         X, y = X.to(device), y.to(device)
         _, loss = model(X, y)
-        # print(pred.size())
-        # print(y.size())
+
 
         # 不添加crf
         # loss = loss_fn(pred.permute(0, 2, 1), y)
         optimizer.zero_grad()
         loss.backward()
-        # for name, para in model.named_parameters():
-        #     if name == 'bert.encoder.layer.0.attention.self.query.weight':
-        #         print(para)
+
         optimizer.step()
         lr_scheduler.step()
 
         total_loss += loss.item()
-        if batch % 100 == 0:
+        if batch % 10 == 0:
             total_batch = finish_batch_num + batch
             print('train:batch:', batch, '/', len(dataloader), '\t\t\t', 'loss:', total_loss / total_batch)
             batchs.append(total_batch)
@@ -56,7 +53,7 @@ def test(dataloader, model, device):
                 print('test:', idx, '/', len(dataloader))
     with open(test_result_path, 'a', encoding='utf-8') as f:
         f.write(str(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2)))
-    # print(classification_report(true_labels, true_predictions, mode='strict', scheme=IOB2))
+
 
 
 def draw(batchs, batch_loss, total_average_loss):
