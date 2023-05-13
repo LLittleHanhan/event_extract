@@ -1,22 +1,13 @@
 import torch
 
 # 文件路径
-dev_path = './DuEE1.0/duee_dev.json'
-test_path = './DuEE1.0/duee_test.json'
-train_path = './DuEE1.0/new_duee_train.json'
-label_path = './DuEE1.0/label.txt'
-test_result_path = './test_result.txt'
-# id2label
-label2id = {}
-id2label = {}
-with open(label_path, 'r', encoding='utf-8') as f:
-    for line in f.readlines():
-        id, label = line.strip().split(' ')
-        label2id[label] = int(id)
-        id2label[int(id)] = label
-
-#
-checkpoint = './chinese-roberta-wwm-ext'
+dev_path = './class/new_dev.txt'
+test_path = './class/new_test.txt'
+train_path = './class/new_train.txt'
+label_path = './class/label.txt'
+test_result_path = './class/result.txt'
+# 超参
+checkpoint = './bert-base-chinese'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'Using {device} device')
 
