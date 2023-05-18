@@ -19,7 +19,7 @@ from var import device, id2label, dev_path, checkpoint
 '''
 
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
-model = torch.load('./train_model/2.bin').to(device)
+model = torch.load('./train_model/role.bin').to(device)
 model.eval()
 with torch.no_grad():
     dataset = myDataSet(dev_path)

@@ -49,7 +49,7 @@ def run():
         # total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, optimizer,
         #                                                            lr_scheduler, epoch + 1, device, total_loss,
         #                                                            batchs, batch_loss, total_average_loss)
-        # torch.save(mymodel, f'./train_model/{epoch + 1}model.bin')
+        torch.save(mymodel.state_dict(), f'./train_model/{epoch + 1}model.bin')
         end_time = time.time()
         print('time', end_time - start_time)
 
@@ -57,11 +57,11 @@ def run():
         #     if name == 'crf.transitions':
         #         print(para)
 
-        for k, v in report_dic.items():
-            v[0] = v[1] = v[2] = v[3] = v[4] = v[5] = 0
-        test(dev_dataloader, mymodel, device)
-        report()
-    draw(batchs, batch_loss, total_average_loss)
+    #     for k, v in report_dic.items():
+    #         v[0] = v[1] = v[2] = v[3] = v[4] = v[5] = 0
+    #     test(dev_dataloader, mymodel, device)
+    #     report()
+    # draw(batchs, batch_loss, total_average_loss)
     print("Done!")
 
 
