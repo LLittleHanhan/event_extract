@@ -23,25 +23,22 @@ model.load_state_dict(torch.load('./train_model/1triggerModel.bin'))
 model.eval()
 with torch.no_grad():
     inputs = tokenizer(sentence, truncation=True, return_tensors="pt", return_offsets_mapping=True, max_length=512)
-    offsets = inputs.pop('offset_mapping').squeeze(0)
-    print(offsets[0])
-    start,end = offsets[0]
-    print(start,end)
+    offsets = inputs.pop('offset_mapping').squeeze(0).tolist()
     pred = model(inputs)[1][0][1:-1]
     print(pred)
     idx = 0
-    trigger = 0
-    trigger_start = trigger_end = []
+    type = 0
+    trigger_start = []
+    trigger_end = []
     while idx < len(pred):
         if pred[idx] % 2 == 1:
-            print('yes')
-            trigger = pred[idx]
+            type = pred[idx]
             start, end = offsets[idx]
             trigger_start.append(start)
-        while idx+1 < len(pred) and pred[idx + 1] == trigger + 1:
-            idx += 1
-        _, end = offsets[idx]
-        trigger_end.append(end)
+            while idx + 1 < len(pred) and pred[idx + 1] == type + 1:
+                idx += 1
+            _, end = offsets[idx]
+            trigger_end.append(end)
         idx += 1
     print(trigger_start)
     print(trigger_end)
