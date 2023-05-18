@@ -43,8 +43,9 @@ with open(schema_path, 'r', encoding='utf-8') as f:
         json_data = json.loads(line)
         event_type = str(json_data['event_type']).split('-')[1]
         for role in json_data['role_list']:
-            report_dic[event_type + '-' + role['role']] = [0, 0, 0, 0,0]
-            # 正确，错误，空，多余,模糊正确
+            report_dic[event_type + '-' + role['role']] = [0, 0, 0, 0, 0, 0]
+            # 预测和实际重叠数，预测论元数，实际论元数
+            # 预测和实际重叠字符数，预测字符数，实际字符数
 
 #
 checkpoint = './chinese-roberta-wwm-ext'
@@ -54,5 +55,4 @@ train_batch_size = 8
 dev_batch_size = 64
 CRF_learning_rate = 2e-4
 bert_learning_rate = 2e-5
-epoch_num = 20
-
+epoch_num = 1

@@ -17,13 +17,13 @@ def run():
     train_dataloader = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, collate_fn=collote_fn)
 
     myconfig = AutoConfig.from_pretrained(checkpoint)
-    mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
-    # mymodel = torch.load('./train_model/2.bin').to(device)
+    # mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
+    mymodel = torch.load('./train_model/role.bin').to(device)
 
     params = [
         {"params": mymodel.bert.parameters(), "lr": bert_learning_rate},
         {"params": mymodel.trigger_embedding.parameters(), "lr": CRF_learning_rate},
-        {"params": mymodel.mid_linear.parameters(), "lr": CRF_learning_rate},
+        # {"params": mymodel.mid_linear.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.lay_norm.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.classifier.parameters(), "lr": CRF_learning_rate},
         {"params": mymodel.crf.parameters(), "lr": CRF_learning_rate},
@@ -45,11 +45,11 @@ def run():
     for epoch in range(epoch_num):
 
         start_time = time.time()
-        print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
-        total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, optimizer,
-                                                                   lr_scheduler, epoch + 1, device, total_loss,
-                                                                   batchs, batch_loss, total_average_loss)
-        torch.save(mymodel, f'./train_model/{epoch + 1}model.bin')
+        # print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
+        # total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, optimizer,
+        #                                                            lr_scheduler, epoch + 1, device, total_loss,
+        #                                                            batchs, batch_loss, total_average_loss)
+        # torch.save(mymodel, f'./train_model/{epoch + 1}model.bin')
         end_time = time.time()
         print('time', end_time - start_time)
 
@@ -58,11 +58,7 @@ def run():
         #         print(para)
 
         for k, v in report_dic.items():
-            v[0] = v[1] = v[2] = v[3] = v[4] = 0
-        test(train_dataloader, mymodel, device)
-        report()
-        for k, v in report_dic.items():
-            v[0] = v[1] = v[2] = v[3] = v[4] = 0
+            v[0] = v[1] = v[2] = v[3] = v[4] = v[5] = 0
         test(dev_dataloader, mymodel, device)
         report()
     draw(batchs, batch_loss, total_average_loss)
@@ -70,27 +66,49 @@ def run():
 
 
 def report():
-    sum_r = 0
-    sum_w = 0
-    no_answer = 0
-    surplus = 0
-    c_sum_r = 0
-    for k, v in report_dic.items():
-        sum_r += v[0]
-        sum_w += v[1]
-        no_answer += v[2]
-        surplus += v[3]
-        c_sum_r += v[4]
-        if v[0] + v[1] == 0:
-            acc = 1.
-            c_acc = 1.
+    sum_overlap_words = 0
+    sum_pred_words = 0
+    sum_label_words = 0
+
+    sum_overlap_char = 0
+    sum_pred_char = 0
+    sum_label_char = 0
+
+    sum_words_f1 = 0
+    sum_char_f1 = 0
+    for key, value in report_dic.items():
+        sum_overlap_words += value[0]
+        sum_pred_words += value[1]
+        sum_label_words += value[2]
+
+        sum_overlap_char += value[3]
+        sum_pred_char += value[4]
+        sum_label_char += value[5]
+
+        if value[2] == 0:
+            words_f1 = char_f1 = 1
         else:
-            acc = float(v[0]) / (v[0] + v[1])
-            c_acc = float(v[4]) / (v[0] + v[1])
-        # print(k, ' 正确:', v[0], ' 错误:', v[1], '空:', v[2], '多:', v[3], '模糊正确:', v[4], ' 正确率:', acc, '模糊正确率:', c_acc)
-    print(sum_r, sum_w, no_answer, surplus, c_sum_r)
-    print('总正确率:', float(sum_r) / (sum_r + sum_w))
-    print('模糊正确率:', float(c_sum_r) / (sum_r + sum_w))
+            if value[1] == 0:
+                words_precision = words_recall = char_precision = char_recall = 0
+            else:
+                words_precision = value[0] / value[1]
+                words_recall = value[0] / value[2]
+                char_precision = value[3] / value[4]
+                char_recall = value[3] / value[5]
+            if words_precision == 0 and words_recall == 0:
+                words_f1 = 0
+            else:
+                words_f1 = 2 * words_precision * words_recall / (words_precision + words_recall)
+
+            if char_precision == 0 and char_recall == 0:
+                char_f1 = 0
+            else:
+                char_f1 = 2 * char_precision * char_recall / (char_precision + char_recall)
+
+        sum_words_f1 += words_f1
+        sum_char_f1 += char_f1
+        print(key, ' 严格F1:', words_f1, ' 松弛F1:', char_f1)
+    print('严格F1:', sum_words_f1/len(report_dic), '松弛F1:', sum_char_f1/len(report_dic))
 
 
 if __name__ == '__main__':

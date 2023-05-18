@@ -15,13 +15,13 @@ class myBert(BertPreTrainedModel):
         # 16+768
         self.lay_norm = nn.LayerNorm(784, eps=config.layer_norm_eps)
 
-        self.mid_linear = nn.Sequential(
-            nn.Linear(784, 128),
-            nn.ReLU(),
-            nn.Dropout(config.hidden_dropout_prob)
-        )
+        # self.mid_linear = nn.Sequential(
+        #     nn.Linear(784, 128),
+        #     nn.ReLU(),
+        #     nn.Dropout(config.hidden_dropout_prob)
+        # )
 
-        self.classifier = nn.Linear(128, len(id2label))
+        self.classifier = nn.Linear(784, len(id2label))
         self.crf = CRF(len(id2label), batch_first=True)
         self.post_init()
 
@@ -38,7 +38,7 @@ class myBert(BertPreTrainedModel):
         sequence_output = torch.cat([sequence_output, trigger_position_fature], dim=-1)
         sequence_output = self.lay_norm(sequence_output)
 
-        sequence_output = self.mid_linear(sequence_output)
+        # sequence_output = self.mid_linear(sequence_output)
         logits = self.classifier(sequence_output)
 
         # crf修正

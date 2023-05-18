@@ -64,6 +64,9 @@ def draw(batchs, batch_loss, total_average_loss):
     plt.show()
 
 
+# 预测和实际论元重叠，预测论元数，实际论元数
+# 预测和实际重叠字符数，预测字符数，实际字符数
+
 def analyze(preds, true_labels, X):
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     for (pred, label, input_ids) in zip(preds, true_labels, X['input_ids']):
@@ -72,12 +75,6 @@ def analyze(preds, true_labels, X):
         event_type = seq[2]
         event_trigger = seq[1]
         role = seq[3]
-        # 正确
-        if pred == label:
-            report_dic[event_type + '-' + role][0] += 1
-        # 错误
-        else:
-            report_dic[event_type + '-' + role][1] += 1
 
         pred_start = []
         pred_end = []
@@ -101,18 +98,30 @@ def analyze(preds, true_labels, X):
                 label_end.append(idx)
             idx += 1
 
-        # 空
-        if len(pred_start) == 0:
-            report_dic[event_type + '-' + role][2] += 1
-        # 多
-        elif len(pred_start) != len(label_start):
-            report_dic[event_type + '-' + role][3] += 1
-        # 模糊
-        else:
-            flag = 1
-            for idx in range(len(pred_start)):
-                if pred_end[idx] < label_start[idx] or pred_start[idx] > label_end[idx]:
-                    flag = 0
-                    break
-            if flag:
-                report_dic[event_type + '-' + role][4] += 1
+        words_overlap = 0
+        for idx, s in enumerate(pred_start):
+            if s in label_start and pred_end[idx] == label_end[label_start.index(s)]:
+                words_overlap += 1
+        report_dic[event_type + '-' + role][0] += words_overlap
+        report_dic[event_type + '-' + role][1] += len(pred_start)
+        report_dic[event_type + '-' + role][2] += len(label_start)
+
+        char_overlap = 0
+        for idx, c in enumerate(label):
+            if c != 0 and pred[idx] != 0:
+                char_overlap += 1
+        report_dic[event_type + '-' + role][3] += char_overlap
+        report_dic[event_type + '-' + role][4] += sum(pred_end) - sum(pred_start) + len(pred_start)
+        report_dic[event_type + '-' + role][5] += sum(label_end) - sum(label_start) + len(label_start)
+
+        # print(pred)
+        # print(label)
+        # print(pred_start)
+        # print(pred_end)
+        # print(label_start)
+        # print(label_end)
+        #
+        # print(words_overlap)
+        # print(char_overlap)
+        # print(sum(pred_end) - sum(pred_start) + len(pred_start))
+        # print(sum(label_end) - sum(label_start) + len(label_start))
