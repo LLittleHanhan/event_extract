@@ -17,8 +17,8 @@ def run():
     train_dataloader = DataLoader(train_data, batch_size=train_batch_size, shuffle=True, collate_fn=collote_fn)
 
     myconfig = AutoConfig.from_pretrained(checkpoint)
-    # mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
-    mymodel = torch.load('./train_model/role.bin').to(device)
+    mymodel = myBert.from_pretrained(checkpoint, config=myconfig).to(device)
+    # mymodel = torch.load('./train_model/role.bin').to(device)
 
     params = [
         {"params": mymodel.bert.parameters(), "lr": bert_learning_rate},
@@ -45,23 +45,23 @@ def run():
     for epoch in range(epoch_num):
 
         start_time = time.time()
-        # print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
-        # total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, optimizer,
-        #                                                            lr_scheduler, epoch + 1, device, total_loss,
-        #                                                            batchs, batch_loss, total_average_loss)
+        print(f"Epoch {epoch + 1}/{epoch_num}\n-------------------------------")
+        total_loss, batchs, batch_loss, total_average_loss = train(train_dataloader, mymodel, optimizer,
+                                                                   lr_scheduler, epoch + 1, device, total_loss,
+                                                                   batchs, batch_loss, total_average_loss)
         torch.save(mymodel.state_dict(), f'./train_model/{epoch + 1}model.bin')
         end_time = time.time()
         print('time', end_time - start_time)
 
-        # for name, para in mymodel.named_parameters():
-        #     if name == 'crf.transitions':
-        #         print(para)
+        for name, para in mymodel.named_parameters():
+            if name == 'crf.transitions':
+                print(para)
 
-    #     for k, v in report_dic.items():
-    #         v[0] = v[1] = v[2] = v[3] = v[4] = v[5] = 0
-    #     test(dev_dataloader, mymodel, device)
-    #     report()
-    # draw(batchs, batch_loss, total_average_loss)
+        for k, v in report_dic.items():
+            v[0] = v[1] = v[2] = v[3] = v[4] = v[5] = 0
+        test(dev_dataloader, mymodel, device)
+        report()
+    draw(batchs, batch_loss, total_average_loss)
     print("Done!")
 
 
